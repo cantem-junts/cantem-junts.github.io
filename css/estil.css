@@ -1,0 +1,238 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+
+:root {
+  --fons: #fbf9f5;
+  --superficie: #ffffff;
+  --text: #1f1b18;
+  --suau: #6b625b;
+  --vora: #e4ddd3;
+  --acord: #9b1c31;
+  --marca: #7a1f2b;
+  --franja: #c9a227;
+  --fons-tornada: #f6efdc;
+  --focus: #1d5fbf;
+  --mida: 1;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --fons: #16130f;
+  --superficie: #201c17;
+  --text: #ece6de;
+  --suau: #a79d92;
+  --vora: #3a332b;
+  --acord: #ff9aa8;
+  --marca: #e8a2ad;
+  --franja: #d9b545;
+  --fons-tornada: #2a2419;
+  --focus: #8ab4ff;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Ubuntu, sans-serif;
+  background: var(--fons);
+  color: var(--text);
+  line-height: 1.45;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+a { color: var(--marca); }
+main { flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px 2rem; outline: none; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+[hidden] { display: none !important; }
+
+/* --- Capçalera i peu --- */
+.capcalera {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 16px;
+  background: var(--marca); color: #fff;
+}
+:root[data-theme="dark"] .capcalera { background: #3b1219; }
+.marca { color: #fff; text-decoration: none; font-weight: 700; font-size: 1.15rem; letter-spacing: .01em; }
+.capcalera-accions { display: flex; gap: 6px; }
+.capcalera .boto { color: #fff; border-color: rgba(255,255,255,.35); background: transparent; }
+.capcalera .boto:hover { background: rgba(255,255,255,.12); }
+.peu {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px;
+  padding: 16px; font-size: .85rem; color: var(--suau); border-top: 1px solid var(--vora);
+}
+.peu a { color: inherit; }
+
+/* --- Botons --- */
+.boto {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 40px; height: 40px; padding: 0 10px;
+  border: 1px solid var(--vora); border-radius: 8px;
+  background: var(--superficie); color: var(--text);
+  font: inherit; font-size: .95rem; cursor: pointer; text-decoration: none;
+}
+.boto:hover { border-color: var(--suau); }
+.boto:disabled { opacity: .45; cursor: default; }
+.boto-principal { background: var(--marca); border-color: var(--marca); color: #fff; }
+:root[data-theme="dark"] .boto-principal { color: #16130f; }
+.boto-perill { color: #b3261e; }
+:root[data-theme="dark"] .boto-perill { color: #ffb4ab; }
+.grup { display: inline-flex; align-items: center; }
+.grup > .boto { border-radius: 0; }
+.grup > .boto:first-child { border-radius: 8px 0 0 8px; }
+.grup > .boto:last-child { border-radius: 0 8px 8px 0; }
+.grup > .boto + .boto { margin-left: -1px; }
+.grup .valor { min-width: 3.4em; font-weight: 600; cursor: default; }
+.boto[aria-pressed="true"] { background: var(--marca); border-color: var(--marca); color: #fff; }
+:root[data-theme="dark"] .boto[aria-pressed="true"] { color: #16130f; }
+
+/* --- Llista i cercador --- */
+.cercador { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; padding: 0 12px; height: 48px; border: 1px solid var(--vora); border-radius: 10px; background: var(--superficie); }
+.cercador:focus-within { border-color: var(--focus); }
+.cercador input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; font-size: 1.05rem; }
+.pestanyes { display: flex; gap: 4px; margin: 8px 0; border-bottom: 1px solid var(--vora); }
+.pestanya { border: 0; background: none; color: var(--suau); font: inherit; padding: 8px 12px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.pestanya[aria-selected="true"] { color: var(--text); border-bottom-color: var(--marca); font-weight: 600; }
+.etiquetes { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.etiqueta { border: 1px solid var(--vora); background: var(--superficie); color: var(--text); border-radius: 999px; padding: 3px 12px; font: inherit; font-size: .88rem; cursor: pointer; }
+.etiqueta[aria-pressed="true"] { background: var(--marca); border-color: var(--marca); color: #fff; }
+:root[data-theme="dark"] .etiqueta[aria-pressed="true"] { color: #16130f; }
+.llista { list-style: none; margin: 0; padding: 0; columns: 22rem auto; column-gap: 32px; }
+.llista li { break-inside: avoid; border-bottom: 1px solid var(--vora); }
+.llista a { display: block; padding: 10px 4px; text-decoration: none; color: inherit; }
+.llista a:hover .titol-llista { text-decoration: underline; }
+.titol-llista { font-weight: 600; color: var(--text); }
+.detall { display: block; font-size: .88rem; color: var(--suau); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.detall mark { background: #f7e08a; color: #1f1b18; border-radius: 2px; }
+.buit { color: var(--suau); padding: 24px 4px; }
+.recompte { color: var(--suau); font-size: .85rem; margin: 4px 0; }
+
+/* --- Cançó --- */
+.barra {
+  position: sticky; top: 56px; z-index: 10;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin: 0 -16px; padding: 8px 16px;
+  background: var(--fons); border-bottom: 1px solid var(--vora);
+}
+.barra .separador { flex: 1; }
+.encap-canco { margin: 16px 0 8px; }
+.encap-canco h1 { font-size: 1.6rem; margin: 0; line-height: 1.2; }
+.encap-canco .sub { color: var(--suau); margin: 4px 0 0; }
+.encap-canco .etiquetes-canco { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.encap-canco .etiquetes-canco span { font-size: .8rem; border: 1px solid var(--vora); border-radius: 999px; padding: 1px 10px; color: var(--suau); }
+
+.canco { font-size: calc(1.08rem * var(--mida)); }
+.canco.columnes { columns: 2; column-gap: 48px; column-rule: 1px solid var(--vora); }
+.estrofa { break-inside: avoid; margin: 0 0 1.1em; }
+.estrofa.tornada { border-left: 4px solid var(--franja); background: var(--fons-tornada); padding: .35em .8em; border-radius: 0 6px 6px 0; }
+.comentari { break-after: avoid; font-style: italic; color: var(--suau); margin: 0 0 .4em; }
+.linia { margin: 0; padding: 0; }
+.p { display: inline-block; white-space: nowrap; }
+/* L'acord va damunt la síl·laba sense ocupar amplada: pot passar per sobre de
+   la paraula següent. Si xoca amb el pròxim acord, el programa fa lloc. */
+.amb-acords .f { position: relative; display: inline-block; padding-top: 1.1em; line-height: 1.3; }
+.amb-acords .a { position: absolute; top: 0; left: 0; line-height: 1.1; }
+.a { color: var(--acord); font-weight: 700; font-size: .86em; white-space: pre; }
+.t { white-space: pre; }
+.nomes-acords .f, .amb-acords .f.fila-sense-acords { padding-top: 0; }
+.nomes-acords .a { position: static; padding-right: .9em; }
+.nomes-acords .t { display: none; }
+.sense-acords .a { display: none; }
+.sense-acords .amb-acords .f { padding-top: 0; padding-right: 0 !important; }
+.sense-acords .linia.nomes-acords { display: none; }
+
+/* Celebració */
+.index-celebracio { margin: 8px 0 20px; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.moment { margin: 28px 0 8px; padding-top: 12px; border-top: 2px solid var(--vora); }
+.moment h2 { margin: 0; font-size: 1.25rem; }
+.moment .tipus-moment { display: block; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--suau); }
+
+/* --- Editor --- */
+.camps-editor { max-width: 36rem; margin-top: 16px; }
+.editor { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) { .editor { grid-template-columns: 1fr 1fr; } }
+.camp { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.camp label { font-weight: 600; font-size: .92rem; }
+.camp input, .camp textarea, .camp select {
+  font: inherit; color: inherit; background: var(--superficie);
+  border: 1px solid var(--vora); border-radius: 8px; padding: 8px 10px;
+}
+.camp textarea { font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace; font-size: .92rem; min-height: 22rem; resize: vertical; line-height: 1.5; }
+.ajuda { font-size: .85rem; color: var(--suau); margin: 0; }
+.eines-text { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.vista-editor { border: 1px solid var(--vora); border-radius: 10px; background: var(--superficie); padding: 12px 16px; min-height: 10rem; }
+.vista-editor .c, .vista-editor .fi { cursor: pointer; border-radius: 2px; }
+.vista-editor .c:hover, .vista-editor .fi:hover { background: rgba(155, 28, 49, .14); }
+.vista-editor .fi { display: inline-block; min-width: 1.2em; color: var(--suau); }
+.vista-editor .a[data-i] { cursor: pointer; }
+.vista-editor .sel { background: rgba(155, 28, 49, .25); }
+.accions-editor { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.accions-editor .separador { flex: 1; }
+.estat { font-size: .9rem; color: var(--suau); }
+
+.pestanyes-editor { display: none; }
+@media (max-width: 899px) {
+  .pestanyes-editor { display: flex; }
+  .editor[data-vista="text"] .panell-vista { display: none; }
+  .editor[data-vista="vista"] .panell-text { display: none; }
+  .rotol-lletra { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}
+
+/* Selector d'acords */
+.selector-acord {
+  position: absolute; z-index: 40; width: min(22rem, calc(100vw - 32px));
+  background: var(--superficie); border: 1px solid var(--vora); border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 12px;
+}
+.selector-acord h3 { margin: 0 0 8px; font-size: .95rem; display: flex; justify-content: space-between; align-items: center; }
+.selector-acord .fila { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.selector-acord .boto { height: 36px; min-width: 44px; padding: 0 8px; font-weight: 600; }
+.selector-acord .usats .boto { color: var(--acord); }
+.selector-acord .escriure { display: flex; gap: 6px; }
+.selector-acord .escriure input { flex: 1; min-width: 0; font: inherit; padding: 6px 8px; border: 1px solid var(--vora); border-radius: 8px; background: var(--fons); color: inherit; }
+
+/* Llista de la celebració a l'editor */
+.items { list-style: none; padding: 0; margin: 0 0 12px; }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; border: 1px solid var(--vora); border-radius: 10px; padding: 10px; margin-bottom: 8px; background: var(--superficie); }
+.item .camp { margin: 0; }
+.item .botons-item { display: flex; flex-direction: column; gap: 4px; }
+.item .nom-canco { font-weight: 600; }
+.resultats-afegir { list-style: none; padding: 0; margin: 4px 0 0; max-height: 14rem; overflow: auto; border: 1px solid var(--vora); border-radius: 8px; }
+.resultats-afegir button { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--vora); background: var(--superficie); color: inherit; font: inherit; padding: 8px 10px; cursor: pointer; }
+.resultats-afegir button:hover { background: var(--fons); }
+
+/* Pàgines de text */
+.pagina { max-width: 44rem; }
+.pagina h1 { font-size: 1.5rem; }
+.pagina ol li { margin-bottom: .5em; }
+
+/* Avís */
+.avis {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
+  background: #2b2621; color: #fff; padding: 10px 16px; border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25); max-width: calc(100vw - 32px);
+}
+
+@media (max-width: 600px) {
+  .barra { top: 56px; gap: 6px; }
+  .boto { min-width: 38px; height: 38px; padding: 0 8px; }
+  .boto-text span { display: none; }
+  .encap-canco h1 { font-size: 1.35rem; }
+}
+
+/* --- Impressió --- */
+@media print {
+  :root, :root[data-theme="dark"] {
+    --fons: #fff; --superficie: #fff; --text: #000; --suau: #444; --vora: #ccc;
+    --acord: #000; --fons-tornada: #fff; --franja: #888;
+  }
+  body { background: #fff; color: #000; }
+  .capcalera, .barra, .peu, .avis, .no-imprimir { display: none !important; }
+  main { max-width: none; padding: 0; }
+  .canco { font-size: calc(11pt * var(--mida)); }
+  .canco.columnes { columns: 2; column-gap: 1.2cm; column-rule: none; }
+  .estrofa, .moment { break-inside: avoid; }
+  .moment { break-before: auto; }
+  a { color: #000; text-decoration: none; }
+}
