@@ -30,4 +30,4 @@ traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
   Firefox i WebKit, a mòbil i escriptori, mirant les captures.
 - Les proves de l'editor es fan sobre una còpia, no sobre aquest repositori,
   perquè desen fitxers.
-- Cada decisió, al seu ADR a `docs/adr/`.
+- Cada decisió, al seu ADR a `docs/adr/` (índex al `README.md`; `nuevo-adr "Títol"` en crea un, però la plantilla que posa és en castellà: es tradueix).

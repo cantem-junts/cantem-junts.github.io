@@ -310,7 +310,12 @@ if (document.fonts) document.fonts.ready.then(reajusta);
 /* --- Rutes --- */
 const estatLlista = { q: '', pestanya: 'cants', etiqueta: null };
 
+// Els escoltadors que una vista posa a window es treuen en canviar de vista.
+let vistaActual = new AbortController();
+
 async function ruta() {
+  vistaActual.abort();
+  vistaActual = new AbortController();
   const hash = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
   const [primer, segon, tercer] = hash.split('/');
   document.getElementById('btn-nou').hidden = !(await potEditar());
@@ -689,7 +694,8 @@ async function editorCanco(slug) {
         </div>
       </div>
       <div class="panell-vista">
-        <p class="ajuda">Toca la síl·laba on va un acord per posar-lo; toca un acord per canviar-lo o treure'l.</p>
+        <div class="barra-acords" id="ed-barra" role="toolbar" aria-label="Acords"></div>
+        <p class="ajuda" id="ed-ajuda-acords">Tria un acord de la barra i toca les síl·labes on va. Amb la goma, toca els acords que sobren. Per moure'n un, arrossega'l (al mòbil, mantén-lo premut un moment).</p>
         <div class="vista-editor canco" id="ed-vista"></div>
       </div>
     </div>
@@ -763,25 +769,139 @@ async function editorCanco(slug) {
     pinta();
   });
 
-  // Tocar la lletra posa o canvia l'acord en aquell punt.
+  /* Pinzell i goma: es tria a la barra què fa tocar la lletra. */
+  let eina = null; // { acord: 'SOL' } o { goma: true }
+  const extres = [];
+  const historial = [];
+  const $barra = document.getElementById('ed-barra');
+  const pintaBarra = () => {
+    const acords = [...new Set([...acordsDeLaCanco($text.value), ...extres])];
+    $barra.innerHTML = `
+      <div class="xips">${acords.map((a) => `<button class="boto xip" data-pinzell="${esc(a)}" aria-pressed="${eina?.acord === a}" title="Posa ${esc(a)} on toquis">${esc(a)}</button>`).join('')}
+        <button class="boto" data-altre title="Un acord que no és a la barra"><svg><use href="#i-plus"/></svg>Altre</button></div>
+      <div class="eines-acords">
+        <button class="boto" data-goma aria-pressed="${!!eina?.goma}" title="Goma: treu l'acord que toquis"><svg><use href="#i-eraser"/></svg></button>
+        <button class="boto" data-desfes title="Desfés l'últim canvi d'acords" ${historial.length ? '' : 'disabled'}><svg><use href="#i-undo"/></svg></button>
+      </div>`;
+    $vista.classList.toggle('amb-goma', !!eina?.goma);
+    $vista.classList.toggle('amb-pinzell', !!eina?.acord);
+  };
+  const canviaLinia = (canvis) => {
+    historial.push($text.value);
+    if (historial.length > 100) historial.shift();
+    const ls = $text.value.split('\n');
+    for (const [num, f] of canvis) ls[num] = f(ls[num]);
+    $text.value = ls.join('\n');
+    pinta(); pintaBarra(); marcaCanvi();
+  };
+  pintaBarra();
+  $text.addEventListener('input', pintaBarra);
+
+  $barra.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.pinzell) eina = eina?.acord === b.dataset.pinzell ? null : { acord: b.dataset.pinzell };
+    else if ('goma' in b.dataset) eina = eina?.goma ? null : { goma: true };
+    else if ('desfes' in b.dataset) {
+      if (!historial.length) return;
+      $text.value = historial.pop();
+      pinta(); marcaCanvi();
+    } else if ('altre' in b.dataset) {
+      obreSelector(b, null, [], (acord) => {
+        if (!acord) return;
+        if (!extres.includes(acord)) extres.push(acord);
+        eina = { acord };
+        pintaBarra();
+      });
+      return;
+    }
+    pintaBarra();
+  });
+
+  // Tocar la lletra fa el que digui l'eina triada.
   $vista.addEventListener('click', (e) => {
+    if (arrossegat) { arrossegat = false; return; }
     const marca = e.target.closest('[data-i]');
     const pl = e.target.closest('[data-num]');
     if (!marca || !pl) return;
     const num = Number(pl.dataset.num);
     const idx = Number(marca.dataset.i);
-    const linies = $text.value.split('\n');
-    const linia = linies[num];
-    const existent = actualA(linia, idx);
-    tancaSelector();
-    marca.classList.add('sel');
-    obreSelector(marca, existent, acordsDeLaCanco($text.value), (acord) => {
-      const ls = $text.value.split('\n');
-      ls[num] = posaAcord(ls[num], idx, acord);
-      $text.value = ls.join('\n');
-      pinta(); marcaCanvi();
-    });
+    const teAcord = actualA($text.value.split('\n')[num], idx) !== null;
+    if (!eina) { avis('Tria primer un acord de la barra, o la goma per treure\'n.'); return; }
+    if (eina.goma) {
+      if (teAcord) canviaLinia([[num, (l) => posaAcord(l, idx, '')]]);
+      return;
+    }
+    canviaLinia([[num, (l) => posaAcord(l, idx, eina.acord)]]);
   });
+
+  // Arrossegar un acord el mou a una altra síl·laba. Amb el dit, cal mantenir-lo
+  // premut un moment perquè no es confongui amb desplaçar la pàgina.
+  let arrossegat = false;
+  let ar = null;
+  $vista.addEventListener('pointerdown', (e) => {
+    const a = e.target.closest('.a[data-i]');
+    const pl = e.target.closest('[data-num]');
+    if (!a || !pl || e.button > 0) return;
+    ar = { a, num: Number(pl.dataset.num), idx: Number(a.dataset.i), x: e.clientX, y: e.clientY, actiu: false, id: e.pointerId, tipus: e.pointerType };
+    if (e.pointerType === 'touch') {
+      ar.temps = setTimeout(() => { if (ar) comencaArrossegar(e); }, 350);
+    }
+  });
+  const comencaArrossegar = (e) => {
+    ar.actiu = true;
+    ar.fantasma = document.createElement('div');
+    ar.fantasma.className = 'fantasma-acord';
+    ar.fantasma.textContent = ar.a.textContent;
+    document.body.appendChild(ar.fantasma);
+    ar.a.classList.add('arrossegant');
+    $vista.classList.add('arrossegant-acord');
+    mouFantasma(e.clientX, e.clientY);
+    if (navigator.vibrate) navigator.vibrate(15);
+  };
+  const mouFantasma = (x, y) => {
+    ar.fantasma.style.left = `${x}px`;
+    ar.fantasma.style.top = `${y}px`;
+    document.querySelectorAll('.vista-editor .desti').forEach((d) => d.classList.remove('desti'));
+    const sota = document.elementFromPoint(x, y)?.closest('.vista-editor [data-i]');
+    if (sota && !sota.classList.contains('a')) sota.classList.add('desti');
+  };
+  window.addEventListener('pointermove', (e) => {
+    if (!ar || e.pointerId !== ar.id) return;
+    const lluny = Math.hypot(e.clientX - ar.x, e.clientY - ar.y) > 6;
+    if (!ar.actiu) {
+      if (!lluny) return;
+      if (ar.tipus === 'touch') { clearTimeout(ar.temps); ar = null; return; }
+      comencaArrossegar(e);
+    }
+    e.preventDefault();
+    mouFantasma(e.clientX, e.clientY);
+  }, { passive: false, signal: vistaActual.signal });
+  // Mentre s'arrossega amb el dit, la pàgina no s'ha de moure.
+  $vista.addEventListener('touchmove', (e) => { if (ar?.actiu) e.preventDefault(); }, { passive: false });
+  const acabaArrossegar = (e) => {
+    if (!ar || e.pointerId !== ar.id) return;
+    clearTimeout(ar.temps);
+    if (ar.actiu) {
+      arrossegat = true;
+      setTimeout(() => { arrossegat = false; }, 0);
+      ar.fantasma.remove();
+      $vista.classList.remove('arrossegant-acord');
+      const sota = e.type === 'pointerup' ? document.elementFromPoint(e.clientX, e.clientY)?.closest('.vista-editor [data-i]') : null;
+      const pl = sota?.closest('[data-num]');
+      if (sota && pl && !sota.classList.contains('a')) {
+        const desti = { num: Number(pl.dataset.num), idx: Number(sota.dataset.i) };
+        const { num, idx } = ar;
+        const acord = actualA($text.value.split('\n')[num], idx);
+        if (acord !== null && (desti.num !== num || desti.idx !== idx)) {
+          canviaLinia([[num, (l) => posaAcord(l, idx, '')], [desti.num, (l) => posaAcord(l, desti.idx, acord)]]);
+        } else pinta();
+      } else pinta();
+    }
+    ar = null;
+  };
+  window.addEventListener('pointerup', acabaArrossegar, { signal: vistaActual.signal });
+  window.addEventListener('pointercancel', acabaArrossegar, { signal: vistaActual.signal });
 
   document.getElementById('ed-desa').addEventListener('click', async () => {
     const titol = $titol.value.trim();
