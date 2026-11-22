@@ -1,7 +1,8 @@
 # Cantem junts: instruccions per a agents
 
 Cançoner web de cants per a la missa. Web estàtica a GitHub Pages, sense
-servidor ni dependències externes. La interfície és en català.
+servidor ni dependències externes. La interfície és només en català, sense
+traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
 
 ## Peces
 
