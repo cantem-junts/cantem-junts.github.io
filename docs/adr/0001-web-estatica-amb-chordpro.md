@@ -23,6 +23,9 @@ síl·laba i, si la línia no cap, salta amb ella.
 
 - Cerca a tota la lletra, canvi de to i notació a triar, sense servidor.
 - Les dades són text pla, llegible i portable a altres programes de ChordPro.
+- GitHub Pages gratuït demana un repositori públic, i per tant les lletres hi
+  són a la vista, com ja ho eren a Tiddlyhost. Juanjo ho va acceptar el
+  22-11-2026.
 - Cal passar les cançons antigues: les de text es converteixen soles, però
   els seus acords ja estaven desplaçats i s'han de revisar; les de Google es
   treuen del text de la presentació publicada.
