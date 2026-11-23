@@ -34,9 +34,16 @@ que [LA]para encon[solm]trar la fuen[LA]te
 [RE7]Magnifi[SOL]cat, [LA]Magnifi[RE]cat
 [RE7]Magnifi[SOL]cat a[LA]nima [RE]mea
 
+{start_of_chorus}
 rem./sim SIb /SOL. LA/FA#M
+{end_of_chorus}
+
 Veni Sancte Spiritus,
+
+{start_of_chorus}
 rem/sim DO/LA LA/FA#M
+{end_of_chorus}
+
 tui amoris ignem accende.
 [rem] [solm] [DO] [FA]
 [si m]Ve[mim]ni [LA]Sancte Spiri[RE]tus,
@@ -53,7 +60,11 @@ Lau[FA]date [SOL]Domi[DO]num
 {end_of_chorus}
 
 [RE]In ma-nus [fa#]tu-as [mi]Pa-[RE]ter. com[si]men[mi]do. [SOL]spi-ri-tum [FA#]me-um.
+
+{start_of_chorus}
 si miFA# sim LA RE
+{end_of_chorus}
+
 In ma-nus tu-as Pa - ter.
 [mi]com[LA]men[RE]do spi-ri-tum
 

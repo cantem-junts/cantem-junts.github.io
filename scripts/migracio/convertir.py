@@ -12,6 +12,7 @@ F_REG = ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-
 F_BOLD = ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf', 100)
 avisos = []
 DESV = []
+NEGRETA = '\x01'  # marca interna d'una línia en negreta
 
 def avis(m):
     avisos.append(m)
@@ -216,6 +217,20 @@ def files(paths):
     fs.sort(key=lambda f: f['y0'])
     return fs
 
+def gruix(cs):
+    """Mitjana del forat interior respecte a la lletra (amplada), en els
+    contorns que en contenen un altre: més petit com més gruixut és el traç."""
+    rs = []
+    for a in cs:
+        wa = a[2] - a[0]
+        if wa <= 0 or a[3] - a[1] <= 0:
+            continue
+        for b in cs:
+            if b is not a and b[0] > a[0] and b[2] < a[2] and b[1] > a[1] and b[3] < a[3]:
+                rs.append((b[2] - b[0]) / wa)
+    return statistics.median(rs) if len(rs) >= 3 else None
+
+
 def grups_x(cs, n):
     """Parteix els contorns d'una fila en n grups pels n-1 forats més grans."""
     cs = sorted(cs)
@@ -385,6 +400,28 @@ def converteix(slides, titol):
             if res is None:
                 avis(f'diapositiva {ns + 1}: no quadren {len(fs)} files amb {len(visibles)} línies; acords sense col·locar')
                 res = None
+            # Negreta: Google no la deixa al text ni als estils publicats. Es
+            # dedueix del gruix del traç: en negreta, el forat de lletres com
+            # la «o» o la «a» és més petit en proporció a la lletra. Es marca
+            # la línia clarament més gruixuda que la majoria de la caixa.
+            negretes = set()
+            if res:
+                gruixos = []
+                for idx, (L, g) in enumerate(zip(visibles, res)):
+                    # Només lletra amb minúscules: els rètols i les línies
+                    # d'acords estranyes, en majúscules, ja es tracten a part.
+                    if L['tipus'] == 'lletra' and re.search(r'[a-zà-ú]', L['text']):
+                        gr = gruix([c for f in g for c in f['cs']])
+                        if gr is not None:
+                            gruixos.append((idx, gr))
+                # Les línies normals varien una mica segons les lletres que
+                # tenen; la negrita en queda separada per un salt clar. Es
+                # busca el salt més gran i només compta si és prou gran.
+                vals = sorted(r for _, r in gruixos)
+                if len(vals) >= 3:
+                    salt, tall = max((vals[i + 1] - vals[i], i) for i in range(len(vals) - 1))
+                    if vals[tall] < vals[tall + 1] * 0.84:
+                        negretes = {idx for idx, r in gruixos if r <= vals[tall]}
             # construeix
             estrofa = []
             pendents = None  # (acords amb x) esperant la línia de lletra
@@ -415,6 +452,7 @@ def converteix(slides, titol):
                     continue
                 # lletra
                 lt = L['text'].strip()
+                marca = NEGRETA if (vi - 1) in negretes else ''
                 if pendents and fl:
                     negreta = lt.isupper() and False
                     f0 = fl[0]
@@ -427,11 +465,11 @@ def converteix(slides, titol):
                     linia = col_loca(pendents, part.rstrip(), xs)
                     if resta:
                         linia = linia + ' ' + resta
-                    estrofa.append(linia)
+                    estrofa.append(marca + linia)
                 elif pendents:
-                    estrofa.append(' '.join('[' + a + ']' for a, _ in pendents) + ' ' + lt)
+                    estrofa.append(marca + ' '.join('[' + a + ']' for a, _ in pendents) + ' ' + lt)
                 else:
-                    estrofa.append(lt)
+                    estrofa.append(marca + lt)
                 pendents = None
             if pendents:
                 estrofa.append(' '.join('[' + a + ']' for a, _ in pendents))
@@ -444,14 +482,18 @@ def escriu(blocs, titol):
     """Estrofes (llistes de línies ChordPro) → text ChordPro, amb tornades i rètols."""
     out = ['{title: ' + titol + '}', '']
     def es_maj(l):
-        t = re.sub(r'\[[^\]]*\]', '', l).strip()
+        t = re.sub(r'\[[^\]]*\]', '', l).replace(NEGRETA, '').strip()
         return bool(t) and t == t.upper() and re.search(r'[A-ZÀ-Ú]{3}', t) is not None
+
+    def destaca(l):
+        # La tornada es reconeix perquè va en majúscules o en negreta.
+        return l.startswith(NEGRETA) or es_maj(l)
     partits = []
     for b in blocs:
         b = [re.sub(r'(?<=\S)  +', ' ', l).rstrip() for l in b]
         tros = [[b[0]]]
         for l in b[1:]:
-            if es_maj(l) != es_maj(tros[-1][-1]) and re.sub(r'\[[^\]]*\]', '', l).strip():
+            if destaca(l) != destaca(tros[-1][-1]) and re.sub(r'\[[^\]]*\]', '', l).strip():
                 tros.append([l])
             else:
                 tros[-1].append(l)
@@ -461,13 +503,13 @@ def escriu(blocs, titol):
         lletres = [re.sub(r'\[[^\]]*\]', '', l) for l in b]
         net = [re.sub(r'\[[^\]]*\]', '', l).strip() for l in b]
         if len(b) == 1 and '[' not in b[0] and es_maj(b[0]) and len(net[0]) <= 40:
-            out.append('{comment: ' + net[0].capitalize() + '}')
+            out.append('{comment: ' + net[0].replace(NEGRETA, '').capitalize() + '}')
             out.append('')
             continue
-        tornada = all(l.strip() == l.strip().upper() and re.search(r'[A-ZÀ-Ú]{3}', l) for l in lletres if l.strip())
+        tornada = all(destaca(l) for l in b if re.sub(r'\[[^\]]*\]', '', l).strip())
         if tornada:
             out.append('{start_of_chorus}')
-        out += b
+        out += [l.replace(NEGRETA, '') for l in b]
         if tornada:
             out.append('{end_of_chorus}')
         out.append('')

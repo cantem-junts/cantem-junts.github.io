@@ -28,6 +28,15 @@ dibuixa les lletres. `scripts/migracio/convertir.py`:
 4. Posa cada acord a l'inici de síl·laba més proper (síl·labes aproximades per
    al català i el castellà) i escriu ChordPro. Les estrofes en majúscules es
    marquen com a tornada, i un rètol sol en majúscules, com a comentari.
+5. La negrita de l'original també es marca com a tornada (es veu destacada
+   amb la franja), encara que de vegades no ho sigui (estrofes alternes).
+   Google no la deixa ni al text ni als estils publicats: es dedueix del gruix
+   del traç, mesurant el forat de les lletres que en tenen («o», «a», «e»)
+   respecte a la lletra. Una línia és negreta si queda separada de les altres
+   de la mateixa diapositiva per un salt clar (el valor alt del grup baix no
+   arriba al 84 % del baix del grup alt). Comprovat a la vista en «Ave Maria»,
+   «Buscador de oro», «Déu té nom», «El vaixell», «Si creiem que és vivent»,
+   «Glòria a Vós» i «Escolta-ho en el vent».
 
 `scripts/migracio/lot.py` ho fa per a totes i hi afegeix les etiquetes
 (Nadal, Maria, Pasqua) que tenien al TiddlyWiki.
