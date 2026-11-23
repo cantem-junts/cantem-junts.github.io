@@ -70,7 +70,21 @@ altre to, o la mateixa en imatge i en text) no es passen: la web ja canvia de to
   presentacions que s'han hagut de llegir amb OCR. L'acord queda damunt la mateixa síl·laba que a la
   diapositiva, amb els errors que ja hi hagués.
 - No s'han pogut passar 12 presentacions que Google ja ha esborrat
-  (responen 410).
+  (responen 410). La paperera del Drive de qui les va fer era buida, i
+  vuit s'han refet a mà (`a-ma/`) a partir d'altres documents del mateix Drive:
+  - Amb els acords: «No volem guerres», «¡Gloria a Dios!», «Pietat (dust in the
+    wind)» i «Santo». Es col·loquen a la síl·laba sobre la qual queden al document.
+  - Amb els acords en una línia a part, perquè l'original no els col·loca sobre
+    cap síl·laba: «Vull Senyor meu» i «Caldrà dir que si». Els `Re-` d'aquesta
+    última s'escriuen `rem`, perquè la web no entén el guionet.
+  - Només amb la lletra, perquè no s'ha trobat cap versió amb acords: «Junts
+    escriurem» i «Navidad sin pandereta».
+
+  Del «Santo» no és segur que sigui el mateix cant de la presentació
+  («Santo, santo, santo, los cielos te proclaman»). «El 25 de desembre» és
+  «Fum, fum, fum», que ja hi és; «Els àngels allà la glòria» és el mateix que
+  «Els àngels a allà la glòria». No s'han trobat «Ha nascut el Déu infant» ni
+  «Respostes curtes (Kairoi)».
 
 ## Evidència
 
