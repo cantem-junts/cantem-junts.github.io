@@ -20,6 +20,9 @@ traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
 - `scripts/migracio/`: eines d'un sol ús per passar les presentacions de Google
   del cançoner antic ([ADR 7](docs/adr/0007-migracio-de-les-presentacions-de-google.md)).
 - `.github/workflows/pages.yml`: proves, índex i publicació a cada canvi.
+  GitHub Pages ha d'estar configurat amb la font «GitHub Actions»
+  (`build_type: workflow`): si publica des de la branca, aquesta publicació
+  sense `dades/index.json` trepitja la bona i la web no carrega les cançons.
 
 ## Regles
 
