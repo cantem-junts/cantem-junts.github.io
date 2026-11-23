@@ -350,6 +350,7 @@ function obreFaristol() {
       <span class="faristol-pagina" aria-live="polite"></span>
       <div class="grup" role="group" aria-label="Mida de la lletra">
         <button class="boto" data-f="petita" title="Lletra més petita">A−</button>
+        <button class="boto valor" data-f="original" title="Torna a la mida que omple la pantalla"></button>
         <button class="boto" data-f="gran" title="Lletra més gran">A+</button>
       </div>
       <button class="boto" data-f="tanca" title="Surt del faristol"><svg><use href="#i-x"/></svg></button>
@@ -374,6 +375,7 @@ function obreFaristol() {
     pagina = Math.max(0, Math.min(pagines - 1, pagina));
     text.scrollLeft = pagina * pas;
     rotolPagina.textContent = pagines > 1 ? `${pagina + 1}/${pagines}` : '';
+    el.querySelector('[data-f="original"]').textContent = percent(escala);
     let nom = titol;
     if (moments.length) {
       const esq = text.getBoundingClientRect().left;
@@ -458,7 +460,8 @@ function obreFaristol() {
     const b = e.target.closest('[data-f]');
     if (!b) return;
     if (b.dataset.f === 'tanca') return tanca();
-    escala = Math.round(Math.min(1.8, Math.max(0.6, escala + (b.dataset.f === 'gran' ? 0.1 : -0.1))) * 10) / 10;
+    escala = b.dataset.f === 'original' ? 1
+      : Math.round(Math.min(1.8, Math.max(0.6, escala + (b.dataset.f === 'gran' ? 0.1 : -0.1))) * 10) / 10;
     pref.set('mida-faristol', escala === 1 ? null : escala);
     maqueta();
   });
@@ -620,6 +623,9 @@ function vistaLlista() {
   });
 }
 
+// Mida de la lletra respecte a la de sèrie: «100 %», «120 %».
+const percent = (x) => `${Math.round(x * 100)}\u00a0%`;
+
 /* --- Controls comuns de la vista --- */
 function htmlControlsVista(ambTo) {
   return `
@@ -635,6 +641,7 @@ function htmlControlsVista(ambTo) {
     </div>
     <div class="grup" role="group" aria-label="Mida de la lletra">
       <button class="boto" data-acc="petita" title="Lletra més petita">A−</button>
+      <button class="boto valor" data-acc="mida-original" id="valor-mida" title="Torna a la mida de sèrie">${percent(opcions.mida)}</button>
       <button class="boto" data-acc="gran" title="Lletra més gran">A+</button>
     </div>
     <button class="boto" data-acc="acords" aria-pressed="${opcions.acords}" title="Mostra o amaga els acords"><svg><use href="#i-music"/></svg></button>
@@ -652,9 +659,12 @@ function gestionaControls(barra, repinta, salt) {
       opcions.notacio = acc; pref.set('notacio', acc);
       barra.querySelectorAll('[data-acc="llati"],[data-acc="america"]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.acc === acc));
       repinta();
-    } else if (acc === 'petita' || acc === 'gran') {
-      opcions.mida = Math.round(Math.min(2.2, Math.max(0.7, opcions.mida + (acc === 'gran' ? 0.1 : -0.1))) * 10) / 10;
-      pref.set('mida', opcions.mida);
+    } else if (acc === 'petita' || acc === 'gran' || acc === 'mida-original') {
+      opcions.mida = acc === 'mida-original' ? 1
+        : Math.round(Math.min(2.2, Math.max(0.7, opcions.mida + (acc === 'gran' ? 0.1 : -0.1))) * 10) / 10;
+      pref.set('mida', opcions.mida === 1 ? null : opcions.mida);
+      const v = document.getElementById('valor-mida');
+      if (v) v.textContent = percent(opcions.mida);
       document.documentElement.style.setProperty('--mida', opcions.mida);
       reajusta();
     } else if (acc === 'acords') {

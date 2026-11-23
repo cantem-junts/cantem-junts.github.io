@@ -83,7 +83,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .grup > .boto:first-child { border-radius: 8px 0 0 8px; }
 .grup > .boto:last-child { border-radius: 0 8px 8px 0; }
 .grup > .boto + .boto { margin-left: -1px; }
-.grup .valor { min-width: 3.4em; font-weight: 600; cursor: default; }
+.grup .valor { min-width: 3.4em; font-weight: 600; cursor: pointer; }
 .boto[aria-pressed="true"] { background: var(--marca); border-color: var(--marca); color: #fff; }
 :root[data-theme="dark"] .boto[aria-pressed="true"] { color: #16130f; }
 

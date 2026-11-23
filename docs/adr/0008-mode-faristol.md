@@ -17,7 +17,8 @@ celebració a pantalla completa:
 
 - **Mida automàtica**: la lletra creix fins que la línia més llarga omple
   l'amplada de la columna (si una línia és molt més llarga que les altres, es
-  deixa partir aquesta). Entre 16 i 36 px; A− i A+ la retoquen i es recorda.
+  deixa partir aquesta). Entre 16 i 36 px; A− i A+ la retoquen i es recorda,
+  i el botó del mig (el percentatge) torna a la mida automàtica.
   A la celebració, cada cant té la seva mida.
 - **Pàgines, no desplaçament**: tocar la meitat dreta avança i l'esquerra
   torna; també lliscar i el teclat (fletxes, Re Pàg/Av Pàg, espai), que és el
