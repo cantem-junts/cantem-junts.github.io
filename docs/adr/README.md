@@ -13,3 +13,5 @@ alternatives descartades i les conseqüències. Plantilla: [0000](0000-plantilla
 | 6 | [Editor d'acords amb pinzell i goma](0006-editor-d-acords-amb-pinzell-i-goma.md) |
 | 7 | [Migració de les presentacions de Google llegint la posició dels traços](0007-migracio-de-les-presentacions-de-google.md) |
 | 8 | [Mode faristol per tocar a la missa](0008-mode-faristol.md) |
+| 9 | [Entrada amb el compte de GitHub per editar](0009-entrada-amb-github.md) |
+| 10 | [Interfície en català i castellà](0010-interficie-en-catala-i-castella.md) |

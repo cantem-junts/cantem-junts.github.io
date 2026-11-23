@@ -1,6 +1,6 @@
 # 5. Interfície només en català
 
-- Estat: acceptada
+- Estat: substituïda per [10](0010-interficie-en-catala-i-castella.md)
 - Data: 2026-11-22
 
 ## Context

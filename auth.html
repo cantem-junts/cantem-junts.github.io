@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ca">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cantem junts · Entrada amb GitHub</title>
+<p id="text">Tornant al cançoner…</p>
+<script>
+// La mateixa llengua que la web (js/llengua.js): la triada o la del sistema.
+try {
+  let ll = localStorage.getItem('cantem.llengua');
+  if (ll !== 'ca' && ll !== 'es') ll = (navigator.languages || [navigator.language]).map((l) => String(l).toLowerCase().split('-')[0]).find((l) => l === 'ca' || l === 'es') || 'ca';
+  if (ll === 'es') {
+    document.documentElement.lang = 'es';
+    document.title = 'Cantem junts · Entrada con GitHub';
+    document.getElementById('text').textContent = 'Volviendo al cancionero…';
+  }
+} catch (e) { /* en català */ }
+// GitHub torna aquí després d'entrar. Si s'ha obert en una finestra, li passa
+// el codi a la web i es tanca; si no, la mateixa pestanya torna a «Per editar».
+let obridor = null;
+try { if (window.opener && window.opener.location.origin === location.origin) obridor = window.opener; } catch (e) { /* d'un altre lloc */ }
+if (obridor) {
+  obridor.postMessage({ tipus: 'retorn-github', cerca: location.search }, location.origin);
+  window.close();
+} else {
+  sessionStorage.setItem('cantem.retorn-github.cerca', location.search);
+  location.replace('./#/acces');
+}
+</script>
+</html>

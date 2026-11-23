@@ -58,6 +58,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .capcalera-accions { display: flex; gap: 6px; }
 .capcalera .boto { color: #fff; border-color: rgba(255,255,255,.35); background: transparent; }
 .capcalera .boto:hover { background: rgba(255,255,255,.12); }
+.boto-llengua { font-weight: 600; font-size: .85rem; letter-spacing: .04em; }
 .peu {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px;
   padding: 16px; font-size: .85rem; color: var(--suau); border-top: 1px solid var(--vora);

@@ -47,7 +47,8 @@
 <header class="capcalera">
   <a class="marca" href="#/">Cantem junts</a>
   <div class="capcalera-accions">
-    <a class="boto boto-text" id="btn-nou" href="#/nou/cant" hidden title="Afegeix una cançó nova"><svg><use href="#i-plus"/></svg><span>Nova</span></a>
+    <a class="boto boto-text" id="btn-nou" href="#/nou/cant" hidden title="Afegeix una cançó nova" data-t-title><svg><use href="#i-plus"/></svg><span data-t>Nova</span></a>
+    <button type="button" class="boto boto-llengua" id="btn-llengua" lang="es" title="Passa al castellà" aria-label="Passa al castellà">ES</button>
     <button type="button" class="boto" id="btn-tema" title="Canvia entre clar i fosc"><svg><use href="#i-moon"/></svg></button>
   </div>
 </header>
@@ -55,9 +56,9 @@
 <main id="app" tabindex="-1"></main>
 
 <footer class="peu">
-  <span>Cantem junts · <a href="https://github.com/cantem-junts/cantem-junts.github.io/releases" target="_blank" rel="noopener">v0.2.1</a> · © 2026 <a href="https://bilateria.org" target="_blank" rel="noopener">Juan José de Haro</a></span>
-  <span>Programa fet amb IA (<a href="https://jjdeharo.github.io/miae/?nivel=4" target="_blank" rel="noopener">MIAE nivell 4</a>) · Codi <a href="https://github.com/cantem-junts/cantem-junts.github.io" target="_blank" rel="noopener">AGPL</a></span>
-  <span><a href="#/privadesa">Privadesa</a> · <a href="#/credits">Crèdits</a> · <a href="#/acces" id="enllac-acces">Per editar</a></span>
+  <span>Cantem junts · <a href="https://github.com/cantem-junts/cantem-junts.github.io/releases" target="_blank" rel="noopener">v0.3.0</a> · © 2026 <a href="https://bilateria.org" target="_blank" rel="noopener">Juan José de Haro</a></span>
+  <span><span data-t>Programa fet amb IA</span> (<a href="https://jjdeharo.github.io/miae/?nivel=4" target="_blank" rel="noopener" data-t>MIAE nivell 4</a>) · <span data-t>Codi</span> <a href="https://github.com/cantem-junts/cantem-junts.github.io" target="_blank" rel="noopener">AGPL</a></span>
+  <span><a href="#/privadesa" data-t>Privadesa</a> · <a href="#/credits" data-t>Crèdits</a> · <a href="#/acces" id="enllac-acces" data-t>Per editar</a></span>
 </footer>
 
 <div id="avis" class="avis" role="status" aria-live="polite" hidden></div>

@@ -1,8 +1,9 @@
 # Cantem junts: instruccions per a agents
 
 Cançoner web de cants per a la missa. Web estàtica a GitHub Pages, sense
-servidor ni dependències externes. La interfície és només en català, sense
-traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
+servidor ni dependències externes. La interfície és en català i en castellà
+([ADR 10](docs/adr/0010-interficie-en-catala-i-castella.md)); les cançons no es
+tradueixen.
 
 ## Peces
 
@@ -11,6 +12,8 @@ traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
 - `js/acords.js`: lectura dels acords, canvi de to, ChordPro i conversió del
   text amb els acords a sobre. No depèn del navegador; el fan servir les proves
   i `scripts/index.mjs`.
+- `js/llengua.js`: llengua de la interfície, `t()` i el diccionari català →
+  castellà.
 - `js/desament.js`: desa a GitHub (API de continguts, amb la clau de qui
   edita) o al servidor local.
 - `cancons/*.cho`, `celebracions/*.cho`: les dades, en ChordPro.
@@ -30,6 +33,11 @@ traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
 - **Els acords es respecten tal com s'escriuen**: majúscula, major; minúscula,
   menor (`lam`, `fa#`, `mi m`). Sense canvi de to i en notació llatina es
   mostren tal com són al fitxer. Vegeu l'[ADR 4](docs/adr/0004-notacio-dels-acords.md).
+- **Cada text de la interfície passa per `t()`**, escrit en català, i té la
+  seva traducció al diccionari `ES` de `js/llengua.js` (amb `{0}` per a les
+  dades); els textos fixos d'`index.html` porten `data-t`, `data-t-title` o
+  `data-t-placeholder`. Les cançons, les celebracions i els moments no es
+  tradueixen.
 - **Res de tercers** a la web: ni tipografies, ni biblioteques de CDN, ni
   estadístiques. Icones de Lucide copiades a `index.html`.
 - **Prova abans de donar res per bo**: `npm test` i `probar-web` en Chromium,

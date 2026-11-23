@@ -19,9 +19,9 @@ Cançoner de cants per a la missa, amb la lletra i els acords. Substituirà
 
 ## Com s'afegeix una cançó
 
-Des de la web, amb el botó «Nova». Abans, una sola vegada en cada navegador,
-cal donar-li permís per escriure al repositori: ho explica la pàgina «Per
-editar», al peu de la web. La cançó es publica en un minut.
+Des de la web, amb el botó «Nova». Abans cal entrar a «Per editar», al peu de
+la web, amb un compte de GitHub que sigui de l'organització `cantem-junts`
+amb permís per escriure. La cançó es publica en un minut.
 
 ## Format
 

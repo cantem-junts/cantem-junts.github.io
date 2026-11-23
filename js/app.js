@@ -6,7 +6,8 @@ import {
   llegeixChordPro, transposaEtiqueta, toDeLaCanco, usaBemolls, nomDelTo, lletraNeta,
   acordsASobreAChordPro, tensAcordsASobre, posaAcord, acordsDeLaCanco, LLATI,
 } from './acords.js';
-import { esLocal, potEditar, desaFitxer, esborraFitxer, provaClau, clau, oblidaClau } from './desament.js';
+import { esLocal, potEditar, desaFitxer, esborraFitxer, usuari, iniciaSessio, completaRetorn, tancaSessio } from './desament.js';
+import { t, llengua, canviaLlengua, altraLlengua, traduixEstatics } from './llengua.js';
 
 const $app = document.getElementById('app');
 const col = new Intl.Collator('ca');
@@ -105,6 +106,8 @@ function avis(text, ms = 2600) {
 const cancoPerSlug = (s) => dades.cancons.find((c) => c.slug === s);
 const celebracioPerSlug = (s) => dades.celebracions.find((c) => c.slug === s);
 
+traduixEstatics();
+
 /* --- Tema --- */
 const sistemaFosc = matchMedia('(prefers-color-scheme: dark)');
 function aplicaTema(fosc, triat) {
@@ -112,7 +115,7 @@ function aplicaTema(fosc, triat) {
   if (triat) pref.set('tema', fosc === sistemaFosc.matches ? null : (fosc ? 'fosc' : 'clar'));
   const b = document.getElementById('btn-tema');
   b.querySelector('use').setAttribute('href', fosc ? '#i-sun' : '#i-moon');
-  b.title = fosc ? 'Passa al tema clar' : 'Passa al tema fosc';
+  b.title = fosc ? t('Passa al tema clar') : t('Passa al tema fosc');
 }
 document.getElementById('btn-tema').addEventListener('click', () => aplicaTema(document.documentElement.dataset.theme !== 'dark', true));
 sistemaFosc.addEventListener('change', (e) => { if (pref.get('tema', null) === null) aplicaTema(e.matches, false); });
@@ -195,8 +198,8 @@ function htmlLinia(linia, salt, bemolls, mode) {
   }
   if (mode === 'edicio') {
     html += teAcords
-      ? `<span class="f"><span class="a"></span><span class="t"><span class="fi" data-i="${llargada}" title="Acord al final de la línia">·</span></span></span>`
-      : `<span class="t"><span class="fi" data-i="${llargada}" title="Acord al final de la línia">·</span></span>`;
+      ? `<span class="f"><span class="a"></span><span class="t"><span class="fi" data-i="${llargada}" title="${t('Acord al final de la línia')}">·</span></span></span>`
+      : `<span class="t"><span class="fi" data-i="${llargada}" title="${t('Acord al final de la línia')}">·</span></span>`;
   }
   const classes = ['linia', teAcords ? 'amb-acords' : '', nomesAcords && mode !== 'edicio' ? 'nomes-acords' : ''].filter(Boolean).join(' ');
   return `<p class="${classes}" data-num="${linia.num}">${html}</p>`;
@@ -343,17 +346,17 @@ function obreFaristol() {
   const el = document.createElement('div');
   el.className = 'faristol';
   el.setAttribute('role', 'dialog');
-  el.setAttribute('aria-label', `Faristol: ${titol}`);
+  el.setAttribute('aria-label', t('Faristol: {0}', titol));
   el.innerHTML = `
     <div class="faristol-capa">
       <span class="faristol-titol"></span>
       <span class="faristol-pagina" aria-live="polite"></span>
-      <div class="grup" role="group" aria-label="Mida de la lletra">
-        <button class="boto" data-f="petita" title="Lletra més petita">A−</button>
-        <button class="boto valor" data-f="original" title="Torna a la mida que omple la pantalla"></button>
-        <button class="boto" data-f="gran" title="Lletra més gran">A+</button>
+      <div class="grup" role="group" aria-label="${t('Mida de la lletra')}">
+        <button class="boto" data-f="petita" title="${t('Lletra més petita')}">A−</button>
+        <button class="boto valor" data-f="original" title="${t('Torna a la mida que omple la pantalla')}"></button>
+        <button class="boto" data-f="gran" title="${t('Lletra més gran')}">A+</button>
       </div>
-      <button class="boto" data-f="tanca" title="Surt del faristol"><svg><use href="#i-x"/></svg></button>
+      <button class="boto" data-f="tanca" title="${t('Surt del faristol')}"><svg><use href="#i-x"/></svg></button>
     </div>
     <div class="faristol-marc">
       <div class="faristol-text canco${origen.classList.contains('sense-acords') ? ' sense-acords' : ''}">${origen.innerHTML}</div>
@@ -577,11 +580,11 @@ function vistaLlista() {
   posa(`
     <label class="cercador">
       <svg aria-hidden="true"><use href="#i-search"/></svg>
-      <input id="q" type="search" placeholder="Cerca pel títol o per un tros de la lletra" aria-label="Cerca" value="${esc(estatLlista.q)}" autocomplete="off">
+      <input id="q" type="search" placeholder="${t('Cerca pel títol o per un tros de la lletra')}" aria-label="${t('Cerca')}" value="${esc(estatLlista.q)}" autocomplete="off">
     </label>
     <div class="pestanyes" role="tablist">
-      <button class="pestanya" role="tab" data-p="cants" aria-selected="${estatLlista.pestanya === 'cants'}">Cants (${dades.cancons.length})</button>
-      <button class="pestanya" role="tab" data-p="celebracions" aria-selected="${estatLlista.pestanya === 'celebracions'}">Celebracions (${dades.celebracions.length})</button>
+      <button class="pestanya" role="tab" data-p="cants" aria-selected="${estatLlista.pestanya === 'cants'}">${t('Cants ({0})', dades.cancons.length)}</button>
+      <button class="pestanya" role="tab" data-p="celebracions" aria-selected="${estatLlista.pestanya === 'celebracions'}">${t('Celebracions ({0})', dades.celebracions.length)}</button>
     </div>
     <div id="contingut-llista"></div>
   `);
@@ -589,17 +592,17 @@ function vistaLlista() {
     const cont = document.getElementById('contingut-llista');
     if (estatLlista.pestanya === 'celebracions') {
       cont.innerHTML = `
-        <p class="recompte">Cada celebració recull els cants d'una missa, en ordre.</p>
-        <ul class="llista">${dades.celebracions.map((c) => `<li><a href="#/celebracio/${esc(c.slug)}"><span class="titol-llista">${esc(c.titol)}</span>${c.subtitol ? `<span class="detall">${esc(c.subtitol)}</span>` : ''}</a></li>`).join('') || '<li class="buit">Encara no hi ha cap celebració.</li>'}</ul>
-        <p class="no-imprimir" id="nova-celebracio" hidden><a class="boto" href="#/nou/celebracio"><svg><use href="#i-plus"/></svg>Nova celebració</a></p>`;
+        <p class="recompte">${t("Cada celebració recull els cants d'una missa, en ordre.")}</p>
+        <ul class="llista">${dades.celebracions.map((c) => `<li><a href="#/celebracio/${esc(c.slug)}"><span class="titol-llista">${esc(c.titol)}</span>${c.subtitol ? `<span class="detall">${esc(c.subtitol)}</span>` : ''}</a></li>`).join('') || `<li class="buit">${t('Encara no hi ha cap celebració.')}</li>`}</ul>
+        <p class="no-imprimir" id="nova-celebracio" hidden><a class="boto" href="#/nou/celebracio"><svg><use href="#i-plus"/></svg>${t('Nova celebració')}</a></p>`;
       potEditar().then((s) => { const b = document.getElementById('nova-celebracio'); if (b) b.hidden = !s; });
       return;
     }
     const res = cerca(estatLlista.q);
     cont.innerHTML = `
-      ${etiquetes.length ? `<div class="etiquetes" aria-label="Filtra per tema">${etiquetes.map((e) => `<button class="etiqueta" data-e="${esc(e)}" aria-pressed="${estatLlista.etiqueta === e}">${esc(e)}</button>`).join('')}</div>` : ''}
-      ${estatLlista.q || estatLlista.etiqueta ? `<p class="recompte">${res.length === 1 ? '1 cançó' : `${res.length} cançons`}</p>` : ''}
-      <ul class="llista">${res.map((r) => `<li><a href="#/cant/${esc(r.c.slug)}"><span class="titol-llista">${marca(r.c.titol, r.paraulesQ)}</span><span class="detall">${marca(r.detall, r.paraulesQ)}</span></a></li>`).join('') || '<li class="buit">No hi ha cap cançó que coincideixi.</li>'}</ul>`;
+      ${etiquetes.length ? `<div class="etiquetes" aria-label="${t('Filtra per tema')}">${etiquetes.map((e) => `<button class="etiqueta" data-e="${esc(e)}" aria-pressed="${estatLlista.etiqueta === e}">${esc(e)}</button>`).join('')}</div>` : ''}
+      ${estatLlista.q || estatLlista.etiqueta ? `<p class="recompte">${res.length === 1 ? t('1 cançó') : t('{0} cançons', res.length)}</p>` : ''}
+      <ul class="llista">${res.map((r) => `<li><a href="#/cant/${esc(r.c.slug)}"><span class="titol-llista">${marca(r.c.titol, r.paraulesQ)}</span><span class="detall">${marca(r.detall, r.paraulesQ)}</span></a></li>`).join('') || `<li class="buit">${t('No hi ha cap cançó que coincideixi.')}</li>`}</ul>`;
   };
   pintaContingut();
   const q = document.getElementById('q');
@@ -629,25 +632,25 @@ const percent = (x) => `${Math.round(x * 100)}\u00a0%`;
 /* --- Controls comuns de la vista --- */
 function htmlControlsVista(ambTo) {
   return `
-    <button class="boto boto-principal boto-faristol" data-acc="faristol" title="Pantalla completa amb la lletra grossa, per tocar: toca la dreta per passar pàgina"><svg><use href="#i-faristol"/></svg><span>Faristol</span></button>
-    ${ambTo ? `<div class="grup" role="group" aria-label="To">
-      <button class="boto" data-acc="baixa" title="Baixa mig to"><svg><use href="#i-minus"/></svg></button>
-      <button class="boto valor" data-acc="to-original" id="valor-to" title="Torna al to original"></button>
-      <button class="boto" data-acc="puja" title="Puja mig to"><svg><use href="#i-plus"/></svg></button>
+    <button class="boto boto-principal boto-faristol" data-acc="faristol" title="${t('Pantalla completa amb la lletra grossa, per tocar: toca la dreta per passar pàgina')}"><svg><use href="#i-faristol"/></svg><span>${t('Faristol')}</span></button>
+    ${ambTo ? `<div class="grup" role="group" aria-label="${t('To')}">
+      <button class="boto" data-acc="baixa" title="${t('Baixa mig to')}"><svg><use href="#i-minus"/></svg></button>
+      <button class="boto valor" data-acc="to-original" id="valor-to" title="${t('Torna al to original')}"></button>
+      <button class="boto" data-acc="puja" title="${t('Puja mig to')}"><svg><use href="#i-plus"/></svg></button>
     </div>` : ''}
-    <div class="grup" role="group" aria-label="Notació dels acords">
-      <button class="boto" data-acc="llati" aria-pressed="${opcions.notacio === 'llati'}" title="Acords en notació llatina (DO, RE, MI)">DO</button>
-      <button class="boto" data-acc="america" aria-pressed="${opcions.notacio === 'america'}" title="Acords en notació americana (C, D, E)">C</button>
+    <div class="grup" role="group" aria-label="${t('Notació dels acords')}">
+      <button class="boto" data-acc="llati" aria-pressed="${opcions.notacio === 'llati'}" title="${t('Acords en notació llatina (DO, RE, MI)')}">DO</button>
+      <button class="boto" data-acc="america" aria-pressed="${opcions.notacio === 'america'}" title="${t('Acords en notació americana (C, D, E)')}">C</button>
     </div>
-    <div class="grup" role="group" aria-label="Mida de la lletra">
-      <button class="boto" data-acc="petita" title="Lletra més petita">A−</button>
-      <button class="boto valor" data-acc="mida-original" id="valor-mida" title="Torna a la mida de sèrie">${percent(opcions.mida)}</button>
-      <button class="boto" data-acc="gran" title="Lletra més gran">A+</button>
+    <div class="grup" role="group" aria-label="${t('Mida de la lletra')}">
+      <button class="boto" data-acc="petita" title="${t('Lletra més petita')}">A−</button>
+      <button class="boto valor" data-acc="mida-original" id="valor-mida" title="${t('Torna a la mida de sèrie')}">${percent(opcions.mida)}</button>
+      <button class="boto" data-acc="gran" title="${t('Lletra més gran')}">A+</button>
     </div>
-    <button class="boto" data-acc="acords" aria-pressed="${opcions.acords}" title="Mostra o amaga els acords"><svg><use href="#i-music"/></svg></button>
+    <button class="boto" data-acc="acords" aria-pressed="${opcions.acords}" title="${t('Mostra o amaga els acords')}"><svg><use href="#i-music"/></svg></button>
     <span class="separador"></span>
-    <button class="boto" data-acc="imprimeix" title="Imprimeix o desa en PDF"><svg><use href="#i-printer"/></svg></button>
-    <button class="boto" data-acc="comparteix" title="Comparteix l'enllaç"><svg><use href="#i-share"/></svg></button>`;
+    <button class="boto" data-acc="imprimeix" title="${t('Imprimeix o desa en PDF')}"><svg><use href="#i-printer"/></svg></button>
+    <button class="boto" data-acc="comparteix" title="${t("Comparteix l'enllaç")}"><svg><use href="#i-share"/></svg></button>`;
 }
 
 function gestionaControls(barra, repinta, salt) {
@@ -679,7 +682,7 @@ function gestionaControls(barra, repinta, salt) {
     } else if (acc === 'comparteix') {
       const dades2 = { title: document.title, url: location.href };
       if (navigator.share) { try { await navigator.share(dades2); } catch (err) { /* cancel·lat */ } }
-      else { try { await navigator.clipboard.writeText(location.href); avis('Enllaç copiat'); } catch (err) { avis(location.href, 6000); } }
+      else { try { await navigator.clipboard.writeText(location.href); avis(t('Enllaç copiat')); } catch (err) { avis(location.href, 6000); } }
     } else if (salt) {
       salt(acc);
     }
@@ -689,15 +692,15 @@ function gestionaControls(barra, repinta, salt) {
 /* --- Cançó --- */
 function vistaCanco(slug) {
   const entrada = cancoPerSlug(slug);
-  if (!entrada) return posa('<p class="buit">No s\'ha trobat aquesta cançó. <a href="#/">Torna a la llista</a>.</p>');
+  if (!entrada) return posa(`<p class="buit">${t("No s'ha trobat aquesta cançó.")} <a href="#/">${t('Torna a la llista')}</a>.</p>`);
   const canco = llegeixChordPro(entrada.font);
   const to = toDeLaCanco(canco);
   let salt = Number(pref.get('to.' + slug, '0'));
   posa(`
     <div class="barra">
-      <a class="boto" href="#/" title="Torna a la llista"><svg><use href="#i-left"/></svg></a>
+      <a class="boto" href="#/" title="${t('Torna a la llista')}"><svg><use href="#i-left"/></svg></a>
       ${to ? htmlControlsVista(true) : htmlControlsVista(false)}
-      <a class="boto" id="btn-edita" href="#/edita/cant/${esc(slug)}" title="Edita aquesta cançó" hidden><svg><use href="#i-pencil"/></svg></a>
+      <a class="boto" id="btn-edita" href="#/edita/cant/${esc(slug)}" title="${t('Edita aquesta cançó')}" hidden><svg><use href="#i-pencil"/></svg></a>
     </div>
     <div class="encap-canco">
       <h1>${esc(canco.titol)}</h1>
@@ -717,7 +720,7 @@ function vistaCanco(slug) {
     const v = document.getElementById('valor-to');
     if (v) {
       v.textContent = nomDelTo(to, salt, opcions.notacio) + (salt ? ` ${salt > 0 ? '+' : '−'}${Math.abs(salt)}` : '');
-      v.title = salt ? `Torna al to original (${nomDelTo(to, 0, opcions.notacio)})` : 'To original';
+      v.title = salt ? t('Torna al to original ({0})', nomDelTo(to, 0, opcions.notacio)) : t('To original');
     }
   };
   pinta();
@@ -737,13 +740,13 @@ function vistaCanco(slug) {
 /* --- Celebració --- */
 function vistaCelebracio(slug) {
   const entrada = celebracioPerSlug(slug);
-  if (!entrada) return posa('<p class="buit">No s\'ha trobat aquesta celebració. <a href="#/">Torna a la llista</a>.</p>');
+  if (!entrada) return posa(`<p class="buit">${t("No s'ha trobat aquesta celebració.")} <a href="#/">${t('Torna a la llista')}</a>.</p>`);
   const cel = llegeixChordPro(entrada.font);
   posa(`
     <div class="barra">
-      <a class="boto" href="#/" title="Torna a la llista"><svg><use href="#i-left"/></svg></a>
+      <a class="boto" href="#/" title="${t('Torna a la llista')}"><svg><use href="#i-left"/></svg></a>
       ${htmlControlsVista(false)}
-      <a class="boto" id="btn-edita" href="#/edita/celebracio/${esc(slug)}" title="Edita aquesta celebració" hidden><svg><use href="#i-pencil"/></svg></a>
+      <a class="boto" id="btn-edita" href="#/edita/celebracio/${esc(slug)}" title="${t('Edita aquesta celebració')}" hidden><svg><use href="#i-pencil"/></svg></a>
     </div>
     <div class="encap-canco">
       <h1>${esc(cel.titol)}</h1>
@@ -759,7 +762,7 @@ function vistaCelebracio(slug) {
     const cant = ({ slug: s, moment }) => {
       const e = cancoPerSlug(s);
       const id = 'm' + index.length;
-      if (!e) { index.push(`<li>${esc(s)}</li>`); return `<section class="moment" id="${id}"><h2>${esc(s)}</h2><p class="buit">Aquesta cançó ja no hi és.</p></section>`; }
+      if (!e) { index.push(`<li>${esc(s)}</li>`); return `<section class="moment" id="${id}"><h2>${esc(s)}</h2><p class="buit">${t('Aquesta cançó ja no hi és.')}</p></section>`; }
       const c = llegeixChordPro(e.font);
       const salt = Number(pref.get('to.' + s, '0'));
       index.push(`<li><a href="#${id}" data-salta="${id}">${esc(c.titol)}</a></li>`);
@@ -803,21 +806,21 @@ function obreSelector(ancora, actual, usats, tria) {
   selector = document.createElement('div');
   selector.className = 'selector-acord';
   selector.setAttribute('role', 'dialog');
-  selector.setAttribute('aria-label', 'Tria un acord');
+  selector.setAttribute('aria-label', t('Tria un acord'));
   selector.innerHTML = `
-    <h3>${actual ? `Canvia ${esc(actual)}` : 'Posa un acord'}<button class="boto" data-tanca title="Tanca"><svg><use href="#i-x"/></svg></button></h3>
+    <h3>${actual ? t('Canvia {0}', esc(actual)) : t('Posa un acord')}<button class="boto" data-tanca title="${t('Tanca')}"><svg><use href="#i-x"/></svg></button></h3>
     ${usats.length ? `<div class="fila usats">${usats.map((a) => `<button class="boto" data-a="${esc(a)}">${esc(a)}</button>`).join('')}</div>` : ''}
     <div class="fila">${arrels.map((a) => `<button class="boto" data-arrel="${a}">${a}</button>`).join('')}</div>
     <div class="fila">
-      <button class="boto" data-mod="#" title="Sostingut">#</button>
-      <button class="boto" data-mod="b" title="Bemoll">b</button>
-      <button class="boto" data-mod="m" title="Menor">m</button>
-      <button class="boto" data-mod="7" title="Sèptima">7</button>
+      <button class="boto" data-mod="#" title="${t('Sostingut')}">#</button>
+      <button class="boto" data-mod="b" title="${t('Bemoll')}">b</button>
+      <button class="boto" data-mod="m" title="${t('Menor')}">m</button>
+      <button class="boto" data-mod="7" title="${t('Sèptima')}">7</button>
     </div>
     <div class="escriure">
-      <input type="text" value="${esc(actual || '')}" aria-label="Acord" placeholder="Escriu l'acord">
-      <button class="boto boto-principal" data-posa>Posa</button>
-      ${actual ? '<button class="boto boto-perill" data-treu title="Treu aquest acord"><svg><use href="#i-trash"/></svg></button>' : ''}
+      <input type="text" value="${esc(actual || '')}" aria-label="${t('Acord')}" placeholder="${t("Escriu l'acord")}">
+      <button class="boto boto-principal" data-posa>${t('Posa')}</button>
+      ${actual ? `<button class="boto boto-perill" data-treu title="${t('Treu aquest acord')}"><svg><use href="#i-trash"/></svg></button>` : ''}
     </div>`;
   document.body.appendChild(selector);
   const r = ancora.getBoundingClientRect();
@@ -854,51 +857,51 @@ document.addEventListener('pointerdown', (e) => {
 async function editorCanco(slug) {
   if (!(await potEditar())) { location.hash = '#/acces'; return; }
   const entrada = slug ? cancoPerSlug(slug) : null;
-  if (slug && !entrada) return posa('<p class="buit">No s\'ha trobat aquesta cançó.</p>');
+  if (slug && !entrada) return posa(`<p class="buit">${t("No s'ha trobat aquesta cançó.")}</p>`);
   const inicial = entrada ? llegeixChordPro(entrada.font) : { titol: '', etiquetes: [] };
   // El títol i les etiquetes es treuen del text: al quadre només hi ha la lletra.
   let cos = entrada ? entrada.font.split('\n').filter((l) => !/^\{\s*(title|t|meta)\s*:/.test(l)).join('\n').replace(/^\n+/, '') : '';
   const totesEtiquetes = [...new Set(dades.cancons.flatMap((c) => c.etiquetes))].sort(col.compare);
   posa(`
     <div class="barra">
-      <a class="boto" href="${entrada ? `#/cant/${esc(slug)}` : '#/'}" title="Torna sense desar"><svg><use href="#i-left"/></svg></a>
-      <strong>${entrada ? 'Edita la cançó' : 'Cançó nova'}</strong>
+      <a class="boto" href="${entrada ? `#/cant/${esc(slug)}` : '#/'}" title="${t('Torna sense desar')}"><svg><use href="#i-left"/></svg></a>
+      <strong>${entrada ? t('Edita la cançó') : t('Cançó nova')}</strong>
     </div>
     <div class="camps-editor">
-        <div class="camp"><label for="ed-titol">Títol</label><input id="ed-titol" value="${esc(inicial.titol)}" autocomplete="off"></div>
-        <div class="camp"><label for="ed-etiq">Temes</label><input id="ed-etiq" list="llista-etiq" value="${esc(inicial.etiquetes.join(', '))}" placeholder="Per exemple: Nadal, Maria" autocomplete="off">
+        <div class="camp"><label for="ed-titol">${t('Títol')}</label><input id="ed-titol" value="${esc(inicial.titol)}" autocomplete="off"></div>
+        <div class="camp"><label for="ed-etiq">${t('Temes')}</label><input id="ed-etiq" list="llista-etiq" value="${esc(inicial.etiquetes.join(', '))}" placeholder="${t('Per exemple: {0}', 'Nadal, Maria')}" autocomplete="off">
           <datalist id="llista-etiq">${totesEtiquetes.map((e) => `<option value="${esc(e)}">`).join('')}</datalist>
-          <p class="ajuda">Separats per comes. Serveixen per filtrar la llista.</p></div>
+          <p class="ajuda">${t('Separats per comes. Serveixen per filtrar la llista.')}</p></div>
         <div class="pestanyes pestanyes-editor" role="tablist">
-          <button class="pestanya" role="tab" data-v="text" aria-selected="true">Lletra</button>
-          <button class="pestanya" role="tab" data-v="vista" aria-selected="false">Acords</button>
+          <button class="pestanya" role="tab" data-v="text" aria-selected="true">${t('Lletra')}</button>
+          <button class="pestanya" role="tab" data-v="vista" aria-selected="false">${t('Acords')}</button>
         </div>
     </div>
     <div class="editor" data-vista="text">
       <div class="panell-text">
         <div class="camp">
-          <label for="ed-text" class="rotol-lletra">Lletra</label>
-          <p class="ajuda">Escriu o enganxa la lletra. Si l'enganxes amb els acords a la línia de sobre, es col·loquen sols damunt de cada síl·laba. Una línia en blanc separa les estrofes.</p>
+          <label for="ed-text" class="rotol-lletra">${t('Lletra')}</label>
+          <p class="ajuda">${t("Escriu o enganxa la lletra. Si l'enganxes amb els acords a la línia de sobre, es col·loquen sols damunt de cada síl·laba. Una línia en blanc separa les estrofes.")}</p>
           <div class="eines-text">
-            <button class="boto" data-eina="tornada" title="Marca les línies triades com a tornada">Tornada</button>
-            <button class="boto" data-eina="nota" title="Afegeix una nota, com «Dues vegades»">Nota</button>
+            <button class="boto" data-eina="tornada" title="${t('Marca les línies triades com a tornada')}">${t('Tornada')}</button>
+            <button class="boto" data-eina="nota" title="${t('Afegeix una nota, com «Dues vegades»')}">${t('Nota')}</button>
           </div>
           <textarea id="ed-text" spellcheck="false">${esc(cos)}</textarea>
         </div>
       </div>
       <div class="panell-vista">
-        <div class="barra-acords" id="ed-barra" role="toolbar" aria-label="Acords"></div>
-        <p class="ajuda" id="ed-ajuda-acords">Tria un acord de la barra i toca les síl·labes on va. Amb la goma, toca els acords que sobren. Per moure'n un, arrossega'l (al mòbil, mantén-lo premut un moment).</p>
+        <div class="barra-acords" id="ed-barra" role="toolbar" aria-label="${t('Acords')}"></div>
+        <p class="ajuda" id="ed-ajuda-acords">${t("Tria un acord de la barra i toca les síl·labes on va. Amb la goma, toca els acords que sobren. Per moure'n un, arrossega'l (al mòbil, mantén-lo premut un moment).")}</p>
         <div class="vista-editor canco" id="ed-vista"></div>
       </div>
     </div>
     <div class="accions-editor">
-      <button class="boto boto-principal" id="ed-desa"><svg><use href="#i-pencil"/></svg>Desa</button>
+      <button class="boto boto-principal" id="ed-desa"><svg><use href="#i-pencil"/></svg>${t('Desa')}</button>
       <span class="estat" id="ed-estat"></span>
       <span class="separador"></span>
-      ${entrada ? '<button class="boto boto-perill" id="ed-esborra"><svg><use href="#i-trash"/></svg>Esborra</button>' : ''}
+      ${entrada ? `<button class="boto boto-perill" id="ed-esborra"><svg><use href="#i-trash"/></svg>${t('Esborra')}</button>` : ''}
     </div>
-  `, entrada ? `Edita: ${inicial.titol}` : 'Cançó nova');
+  `, entrada ? t('Edita: {0}', inicial.titol) : t('Cançó nova'));
 
   const $titol = document.getElementById('ed-titol');
   const $etiq = document.getElementById('ed-etiq');
@@ -913,11 +916,11 @@ async function editorCanco(slug) {
   };
   const pinta = () => {
     const c = llegeixChordPro($text.value);
-    $vista.innerHTML = htmlCanco(c, 0, 'edicio') || '<p class="ajuda">Aquí es veurà la lletra amb els acords.</p>';
+    $vista.innerHTML = htmlCanco(c, 0, 'edicio') || `<p class="ajuda">${t('Aquí es veurà la lletra amb els acords.')}</p>`;
     ajustaAcords($vista);
   };
   pinta();
-  const marcaCanvi = () => { canviat = true; document.getElementById('ed-estat').textContent = 'Canvis sense desar'; };
+  const marcaCanvi = () => { canviat = true; document.getElementById('ed-estat').textContent = t('Canvis sense desar'); };
   $text.addEventListener('input', () => { pinta(); marcaCanvi(); });
   $titol.addEventListener('input', marcaCanvi);
   $etiq.addEventListener('input', marcaCanvi);
@@ -930,7 +933,7 @@ async function editorCanco(slug) {
     const conv = acordsASobreAChordPro(t);
     $text.setRangeText(conv, $text.selectionStart, $text.selectionEnd, 'end');
     pinta(); marcaCanvi();
-    avis('Acords col·locats damunt de la lletra. Revisa-ho a «Acords».', 4000);
+    avis(t('Acords col·locats damunt de la lletra. Revisa-ho a «Acords».'), 4000);
   });
 
   $app.querySelector('.eines-text').addEventListener('click', (e) => {
@@ -947,8 +950,9 @@ async function editorCanco(slug) {
       $text.setRangeText(`{start_of_chorus}\n${tros}\n{end_of_chorus}`, ini, fi, 'end');
     } else {
       const inici = v.lastIndexOf('\n', ini - 1) + 1;
-      $text.setRangeText('{comment: Dues vegades}\n', inici, inici, 'select');
-      $text.setSelectionRange(inici + 10, inici + 22);
+      const nota = t('Dues vegades');
+      $text.setRangeText(`{comment: ${nota}}\n`, inici, inici, 'select');
+      $text.setSelectionRange(inici + 10, inici + 10 + nota.length);
     }
     $text.focus();
     pinta(); marcaCanvi();
@@ -970,11 +974,11 @@ async function editorCanco(slug) {
   const pintaBarra = () => {
     const acords = [...new Set([...acordsDeLaCanco($text.value), ...extres])];
     $barra.innerHTML = `
-      <div class="xips">${acords.map((a) => `<button class="boto xip" data-pinzell="${esc(a)}" aria-pressed="${eina?.acord === a}" title="Posa ${esc(a)} on toquis">${esc(a)}</button>`).join('')}
-        <button class="boto" data-altre title="Un acord que no és a la barra"><svg><use href="#i-plus"/></svg>Altre</button></div>
+      <div class="xips">${acords.map((a) => `<button class="boto xip" data-pinzell="${esc(a)}" aria-pressed="${eina?.acord === a}" title="${t('Posa {0} on toquis', esc(a))}">${esc(a)}</button>`).join('')}
+        <button class="boto" data-altre title="${t('Un acord que no és a la barra')}"><svg><use href="#i-plus"/></svg>${t('Altre')}</button></div>
       <div class="eines-acords">
-        <button class="boto" data-goma aria-pressed="${!!eina?.goma}" title="Goma: treu l'acord que toquis"><svg><use href="#i-eraser"/></svg></button>
-        <button class="boto" data-desfes title="Desfés l'últim canvi d'acords" ${historial.length ? '' : 'disabled'}><svg><use href="#i-undo"/></svg></button>
+        <button class="boto" data-goma aria-pressed="${!!eina?.goma}" title="${t("Goma: treu l'acord que toquis")}"><svg><use href="#i-eraser"/></svg></button>
+        <button class="boto" data-desfes title="${t("Desfés l'últim canvi d'acords")}" ${historial.length ? '' : 'disabled'}><svg><use href="#i-undo"/></svg></button>
       </div>`;
     $vista.classList.toggle('amb-goma', !!eina?.goma);
     $vista.classList.toggle('amb-pinzell', !!eina?.acord);
@@ -1020,7 +1024,7 @@ async function editorCanco(slug) {
     const num = Number(pl.dataset.num);
     const idx = Number(marca.dataset.i);
     const teAcord = actualA($text.value.split('\n')[num], idx) !== null;
-    if (!eina) { avis('Tria primer un acord de la barra, o la goma per treure\'n.'); return; }
+    if (!eina) { avis(t("Tria primer un acord de la barra, o la goma per treure'n.")); return; }
     if (eina.goma) {
       if (teAcord) canviaLinia([[num, (l) => posaAcord(l, idx, '')]]);
       return;
@@ -1098,7 +1102,7 @@ async function editorCanco(slug) {
 
   document.getElementById('ed-desa').addEventListener('click', async () => {
     const titol = $titol.value.trim();
-    if (!titol) { avis('Cal posar un títol.'); $titol.focus(); return; }
+    if (!titol) { avis(t('Cal posar un títol.')); $titol.focus(); return; }
     let nouSlug = slug;
     if (!nouSlug) {
       nouSlug = slugDe(titol);
@@ -1107,13 +1111,13 @@ async function editorCanco(slug) {
     }
     const text = font();
     const estat = document.getElementById('ed-estat');
-    estat.textContent = 'Desant…';
+    estat.textContent = t('Desant…');
     try {
       await desaFitxer(`cancons/${nouSlug}.cho`, text, `${entrada ? 'Canvia' : 'Afegeix'} «${titol}»`);
       if (!(await esLocal())) apuntaPendent(`cancons/${nouSlug}.cho`, text);
       aplicaCanvi(`cancons/${nouSlug}.cho`, text);
       canviat = false;
-      avis((await esLocal()) ? 'Desat' : 'Desat. La web pública s\'actualitzarà en un minut.', 4000);
+      avis((await esLocal()) ? t('Desat') : t("Desat. La web pública s'actualitzarà en un minut."), 4000);
       location.hash = `#/cant/${nouSlug}`;
     } catch (err) {
       estat.textContent = err.message;
@@ -1125,20 +1129,20 @@ async function editorCanco(slug) {
     esb.addEventListener('click', async () => {
       if (!esb.dataset.segur) {
         esb.dataset.segur = '1';
-        esb.innerHTML = '<svg><use href="#i-trash"/></svg>Segur? Toca per esborrar-la';
-        setTimeout(() => { if (esb.isConnected) { delete esb.dataset.segur; esb.innerHTML = '<svg><use href="#i-trash"/></svg>Esborra'; } }, 5000);
+        esb.innerHTML = `<svg><use href="#i-trash"/></svg>${t('Segur? Toca per esborrar-la')}`;
+        setTimeout(() => { if (esb.isConnected) { delete esb.dataset.segur; esb.innerHTML = `<svg><use href="#i-trash"/></svg>${t('Esborra')}`; } }, 5000);
         return;
       }
       const usada = dades.celebracions.filter((c) => new RegExp(`\\{\\s*cant\\s*:\\s*${slug}\\s*\\}`).test(c.font));
       if (usada.length) {
-        document.getElementById('ed-estat').textContent = `No es pot esborrar: és a ${usada.map((c) => `«${c.titol}»`).join(', ')}. Treu-la'n primer.`;
+        document.getElementById('ed-estat').textContent = t("No es pot esborrar: és a {0}. Treu-la'n primer.", usada.map((c) => `«${c.titol}»`).join(', '));
         return;
       }
       try {
         await esborraFitxer(`cancons/${slug}.cho`, `Esborra «${inicial.titol}»`);
         if (!(await esLocal())) apuntaPendent(`cancons/${slug}.cho`, null);
         aplicaCanvi(`cancons/${slug}.cho`, null);
-        avis('Cançó esborrada');
+        avis(t('Cançó esborrada'));
         location.hash = '#/';
       } catch (err) {
         document.getElementById('ed-estat').textContent = err.message;
@@ -1166,7 +1170,7 @@ function actualA(linia, idx) {
 async function editorCelebracio(slug) {
   if (!(await potEditar())) { location.hash = '#/acces'; return; }
   const entrada = slug ? celebracioPerSlug(slug) : null;
-  if (slug && !entrada) return posa('<p class="buit">No s\'ha trobat aquesta celebració.</p>');
+  if (slug && !entrada) return posa(`<p class="buit">${t("No s'ha trobat aquesta celebració.")}</p>`);
   const cel = entrada ? llegeixChordPro(entrada.font) : { titol: '', subtitol: '', linies: [] };
   // La celebració es guarda com a ChordPro: un comentari amb el moment i el cant.
   const items = [];
@@ -1186,46 +1190,46 @@ async function editorCelebracio(slug) {
 
   posa(`
     <div class="barra">
-      <a class="boto" href="${entrada ? `#/celebracio/${esc(slug)}` : '#/'}" title="Torna sense desar"><svg><use href="#i-left"/></svg></a>
-      <strong>${entrada ? 'Edita la celebració' : 'Celebració nova'}</strong>
+      <a class="boto" href="${entrada ? `#/celebracio/${esc(slug)}` : '#/'}" title="${t('Torna sense desar')}"><svg><use href="#i-left"/></svg></a>
+      <strong>${entrada ? t('Edita la celebració') : t('Celebració nova')}</strong>
     </div>
     <div class="pagina">
-      <div class="camp"><label for="cel-titol">Títol</label><input id="cel-titol" value="${esc(cel.titol)}" placeholder="Per exemple: Inici de curs 2026-27"></div>
-      <div class="camp"><label for="cel-sub">Detall</label><input id="cel-sub" value="${esc(cel.subtitol || '')}" placeholder="Data, lloc…"></div>
-      <h2>Cants, en ordre</h2>
+      <div class="camp"><label for="cel-titol">${t('Títol')}</label><input id="cel-titol" value="${esc(cel.titol)}" placeholder="${t('Per exemple: Inici de curs 2026-27')}"></div>
+      <div class="camp"><label for="cel-sub">${t('Detall')}</label><input id="cel-sub" value="${esc(cel.subtitol || '')}" placeholder="${t('Data, lloc…')}"></div>
+      <h2>${t('Cants, en ordre')}</h2>
       <ul class="items" id="items"></ul>
       <div class="camp">
-        <label for="cel-cerca">Afegeix un cant</label>
-        <input id="cel-cerca" type="search" placeholder="Cerca pel títol o la lletra" autocomplete="off">
+        <label for="cel-cerca">${t('Afegeix un cant')}</label>
+        <input id="cel-cerca" type="search" placeholder="${t('Cerca pel títol o la lletra')}" autocomplete="off">
         <ul class="resultats-afegir" id="cel-resultats" hidden></ul>
       </div>
-      <p><button class="boto" id="cel-text"><svg><use href="#i-plus"/></svg>Afegeix un text (salm, resposta…)</button></p>
+      <p><button class="boto" id="cel-text"><svg><use href="#i-plus"/></svg>${t('Afegeix un text (salm, resposta…)')}</button></p>
       <div class="accions-editor">
-        <button class="boto boto-principal" id="cel-desa">Desa</button>
+        <button class="boto boto-principal" id="cel-desa">${t('Desa')}</button>
         <span class="estat" id="cel-estat"></span>
         <span class="separador"></span>
-        ${entrada ? '<button class="boto boto-perill" id="cel-esborra"><svg><use href="#i-trash"/></svg>Esborra</button>' : ''}
+        ${entrada ? `<button class="boto boto-perill" id="cel-esborra"><svg><use href="#i-trash"/></svg>${t('Esborra')}</button>` : ''}
       </div>
     </div>
-  `, entrada ? `Edita: ${cel.titol}` : 'Celebració nova');
+  `, entrada ? t('Edita: {0}', cel.titol) : t('Celebració nova'));
 
   const $items = document.getElementById('items');
   const pintaItems = () => {
     $items.innerHTML = items.map((it, i) => `
       <li class="item" data-i="${i}">
         <div>
-          <div class="camp"><label for="mom-${i}">Moment</label><input id="mom-${i}" data-camp="moment" value="${esc(it.moment)}" placeholder="Entrada, Glòria, Ofertori…" list="moments"></div>
+          <div class="camp"><label for="mom-${i}">${t('Moment')}</label><input id="mom-${i}" data-camp="moment" value="${esc(it.moment)}" placeholder="${t('Entrada, Glòria, Ofertori…')}" list="moments"></div>
           ${'cant' in it
             ? `<p class="nom-canco">${esc(cancoPerSlug(it.cant)?.titol || it.cant)}</p>`
-            : `<div class="camp"><label for="txt-${i}">Text</label><textarea id="txt-${i}" data-camp="text" rows="3" style="min-height:5rem">${esc(it.text)}</textarea></div>`}
+            : `<div class="camp"><label for="txt-${i}">${t('Text')}</label><textarea id="txt-${i}" data-camp="text" rows="3" style="min-height:5rem">${esc(it.text)}</textarea></div>`}
         </div>
         <div class="botons-item">
-          <button class="boto" data-mou="-1" title="Puja" ${i === 0 ? 'disabled' : ''}><svg><use href="#i-up"/></svg></button>
-          <button class="boto" data-mou="1" title="Baixa" ${i === items.length - 1 ? 'disabled' : ''}><svg><use href="#i-down"/></svg></button>
-          <button class="boto boto-perill" data-treu title="Treu-lo de la llista"><svg><use href="#i-x"/></svg></button>
+          <button class="boto" data-mou="-1" title="${t('Puja')}" ${i === 0 ? 'disabled' : ''}><svg><use href="#i-up"/></svg></button>
+          <button class="boto" data-mou="1" title="${t('Baixa')}" ${i === items.length - 1 ? 'disabled' : ''}><svg><use href="#i-down"/></svg></button>
+          <button class="boto boto-perill" data-treu title="${t('Treu-lo de la llista')}"><svg><use href="#i-x"/></svg></button>
         </div>
       </li>`).join('') + `<datalist id="moments">${['Entrada', 'Perdó', 'Glòria', 'Salm', 'Al·leluia', 'Ofertori', 'Sant', 'Pare nostre', 'Pau', 'Anyell de Déu', 'Comunió', 'Acció de gràcies', 'Sortida'].map((m) => `<option value="${m}">`).join('')}</datalist>`;
-    if (!items.length) $items.innerHTML = '<li class="buit">Encara no hi ha cap cant. Cerca\'ls a sota.</li>';
+    if (!items.length) $items.innerHTML = `<li class="buit">${t("Encara no hi ha cap cant. Cerca'ls a sota.")}</li>`;
   };
   pintaItems();
   $items.addEventListener('input', (e) => {
@@ -1249,7 +1253,7 @@ async function editorCelebracio(slug) {
     const q = $cerca.value.trim();
     if (!q) { $res.hidden = true; return; }
     const res = cerca(q).slice(0, 12);
-    $res.innerHTML = res.map((r) => `<li><button data-s="${esc(r.c.slug)}">${esc(r.c.titol)}</button></li>`).join('') || '<li class="buit">Cap cançó.</li>';
+    $res.innerHTML = res.map((r) => `<li><button data-s="${esc(r.c.slug)}">${esc(r.c.titol)}</button></li>`).join('') || `<li class="buit">${t('Cap cançó.')}</li>`;
     $res.hidden = false;
   });
   $res.addEventListener('click', (e) => {
@@ -1268,7 +1272,7 @@ async function editorCelebracio(slug) {
 
   document.getElementById('cel-desa').addEventListener('click', async () => {
     const titol = document.getElementById('cel-titol').value.trim();
-    if (!titol) { avis('Cal posar un títol.'); return; }
+    if (!titol) { avis(t('Cal posar un títol.')); return; }
     const sub = document.getElementById('cel-sub').value.trim();
     let font = `{title: ${titol}}\n${sub ? `{subtitle: ${sub}}\n` : ''}`;
     for (const it of items) {
@@ -1283,12 +1287,12 @@ async function editorCelebracio(slug) {
       while (celebracioPerSlug(nouSlug)) nouSlug = `${slugDe(titol)}-${n++}`;
     }
     const estat = document.getElementById('cel-estat');
-    estat.textContent = 'Desant…';
+    estat.textContent = t('Desant…');
     try {
       await desaFitxer(`celebracions/${nouSlug}.cho`, font, `${entrada ? 'Canvia' : 'Afegeix'} la celebració «${titol}»`);
       if (!(await esLocal())) apuntaPendent(`celebracions/${nouSlug}.cho`, font);
       aplicaCanvi(`celebracions/${nouSlug}.cho`, font);
-      avis((await esLocal()) ? 'Desat' : 'Desat. La web pública s\'actualitzarà en un minut.', 4000);
+      avis((await esLocal()) ? t('Desat') : t("Desat. La web pública s'actualitzarà en un minut."), 4000);
       location.hash = `#/celebracio/${nouSlug}`;
     } catch (err) {
       estat.textContent = err.message;
@@ -1299,7 +1303,7 @@ async function editorCelebracio(slug) {
     esb.addEventListener('click', async () => {
       if (!esb.dataset.segur) {
         esb.dataset.segur = '1';
-        esb.innerHTML = '<svg><use href="#i-trash"/></svg>Segur? Toca per esborrar-la';
+        esb.innerHTML = `<svg><use href="#i-trash"/></svg>${t('Segur? Toca per esborrar-la')}`;
         return;
       }
       try {
@@ -1318,65 +1322,76 @@ async function editorCelebracio(slug) {
 /* --- Accés per editar --- */
 async function vistaAcces() {
   const local = await esLocal();
-  const te = !!clau();
-  posa(`
+  const pinta = (estat = '') => {
+    const qui = usuari();
+    posa(`
     <div class="pagina">
-      <h1>Per editar el cançoner</h1>
-      ${local ? '<p>Ara la web està oberta amb el servidor local: els canvis es desen en aquest ordinador i no cal cap clau.</p><p><a class="boto" href="#/nou/cant"><svg><use href="#i-plus"/></svg>Afegeix una cançó</a></p>' : te ? `
-        <p>Aquest navegador ja pot editar: a cada cançó hi ha el botó per editar-la i, a dalt, el de «Nova».</p>
-        <p><button class="boto" id="oblida">Deixa d'editar en aquest navegador</button></p>` : `
-        <p>Només cal fer-ho una vegada en cada navegador. Les cançons es desen al repositori del cançoner a GitHub, i per escriure-hi cal una clau personal.</p>
-        <ol>
-          <li>Entra a GitHub amb el teu compte i obre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">la pàgina per crear una clau</a>.</li>
-          <li>Posa-li un nom (per exemple, «Cantem junts») i, a la caducitat, la data més llunyana que et deixi.</li>
-          <li>A «Resource owner» tria <strong>cantem-junts</strong>; a «Repository access», «Only select repositories» i el repositori <strong>cantem-junts.github.io</strong>.</li>
-          <li>A «Permissions», busca <strong>Contents</strong> i tria «Read and write». Crea la clau i copia-la.</li>
-          <li>Enganxa-la aquí:</li>
-        </ol>
-        <div class="camp"><label for="clau">Clau</label><input id="clau" type="password" autocomplete="off" placeholder="github_pat_…"></div>
-        <p><button class="boto boto-principal" id="desa-clau">Comprova i desa</button> <span class="estat" id="estat-clau"></span></p>
-        <p class="ajuda">La clau es queda només en aquest navegador i només s'envia a GitHub. Qui no la té pot llegir el cançoner, però no canviar-lo.</p>`}
-    </div>`, 'Per editar');
-  document.getElementById('oblida')?.addEventListener('click', () => { oblidaClau(); avis('Aquest navegador ja no pot editar'); ruta(); });
-  document.getElementById('desa-clau')?.addEventListener('click', async () => {
-    const c = document.getElementById('clau').value.trim();
-    const estat = document.getElementById('estat-clau');
-    if (!c) return;
-    estat.textContent = 'Comprovant…';
-    try {
-      const r = await provaClau(c);
-      if (r.ok) { avis('Llest: ja pots editar des d\'aquest navegador'); location.hash = '#/'; }
-      else estat.textContent = r.motiu;
-    } catch (e) {
-      estat.textContent = 'No s\'ha pogut connectar amb GitHub.';
-    }
-  });
+      <h1>${t('Per editar el cançoner')}</h1>
+      ${local ? `<p>${t('Ara la web està oberta amb el servidor local: els canvis es desen en aquest ordinador i no cal entrar.')}</p><p><a class="boto" href="#/nou/cant"><svg><use href="#i-plus"/></svg>${t('Afegeix una cançó')}</a></p>` : qui ? `
+        <p>${t('Has entrat amb el compte de GitHub {0}: a cada cançó hi ha el llapis per editar-la i, a dalt, el botó «Nova».', `<strong>${esc(qui)}</strong>`)}</p>
+        <p><button class="boto" id="surt">${t('Surt')}</button></p>` : `
+        <p>${t("Entra amb el teu compte de GitHub. Si formes part de l'organització {0} amb permís per escriure, podràs afegir i editar cançons des d'aquest navegador.", '<strong>cantem-junts</strong>')}</p>
+        <p><button class="boto boto-principal" id="entra">${t('Entra amb GitHub')}</button> <span class="estat" id="estat-entrada" role="status">${esc(estat)}</span></p>
+        <p class="ajuda">${t("La primera vegada GitHub et demanarà que autoritzis l'aplicació «Cantem junts», que només pot escriure al cançoner. La sessió es queda en aquest navegador fins que surts.")}</p>`}
+    </div>`, t('Per editar'));
+    document.getElementById('surt')?.addEventListener('click', () => { tancaSessio(); avis(t('Has sortit')); ruta(); });
+    document.getElementById('entra')?.addEventListener('click', async () => {
+      const e = document.getElementById('estat-entrada');
+      e.textContent = t('Esperant GitHub…');
+      try {
+        const nom = await iniciaSessio();
+        avis(t('Has entrat com a {0}: ja pots editar', nom), 4000);
+        location.hash = '#/';
+      } catch (err) {
+        e.textContent = err.message;
+      }
+    });
+  };
+  pinta();
+  // Tornada de GitHub a la mateixa pestanya (si el navegador va bloquejar la finestra).
+  try {
+    const nom = await completaRetorn();
+    if (nom) { avis(t('Has entrat com a {0}: ja pots editar', nom), 4000); location.hash = '#/'; }
+  } catch (err) {
+    pinta(err.message);
+  }
 }
 
 function vistaPrivadesa() {
   posa(`
     <div class="pagina">
-      <h1>Privadesa</h1>
-      <p>Aquesta web no recull cap dada de qui la visita: no fa servir galetes, no compta visites i no carrega res de tercers.</p>
-      <p>Les preferències (tema, notació dels acords, mida de la lletra, el to triat de cada cançó) es guarden només en el teu navegador.</p>
-      <p>Qui edita el cançoner hi guarda una clau de GitHub, també només en el seu navegador; s'envia únicament a GitHub per desar els canvis.</p>
-      <p>La web està allotjada a GitHub Pages, que, com qualsevol servidor, rep l'adreça IP de qui hi entra. Ho explica a la <a href="https://docs.github.com/ca/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">declaració de privadesa de GitHub</a>.</p>
-    </div>`, 'Privadesa');
+      <h1>${t('Privadesa')}</h1>
+      <p>${t('Aquesta web no recull cap dada de qui la visita: no fa servir galetes, no compta visites i no carrega res de tercers.')}</p>
+      <p>${t('Les preferències (tema, llengua, notació dels acords, mida de la lletra, el to triat de cada cançó) es guarden només en el teu navegador.')}</p>
+      <p>${t("Qui edita el cançoner hi entra amb el seu compte de GitHub. La clau de la sessió es guarda només en el seu navegador i s'envia a GitHub per desar els canvis; per obtenir-la i renovar-la passa per un petit servei a bilateria.org, el hosting de l'autor, que no en guarda res.")}</p>
+      <p>${t("La web està allotjada a GitHub Pages, que, com qualsevol servidor, rep l'adreça IP de qui hi entra. Ho explica a la {0}.", `<a href="https://docs.github.com/${llengua}/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">${t('declaració de privadesa de GitHub')}</a>`)}</p>
+    </div>`, t('Privadesa'));
 }
 
 function vistaCredits() {
   posa(`
     <div class="pagina">
-      <h1>Crèdits</h1>
-      <p>Les lletres i les músiques dels cants són dels seus autors.</p>
-      <p>Programa fet amb IA (<a href="https://jjdeharo.github.io/miae/?nivel=4" target="_blank" rel="noopener">MIAE nivell 4</a>). Codi amb llicència <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL 3.0 o posterior</a>.</p>
-      <p>Icones de <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a>, amb llicència ISC.</p>
-      <p>Les cançons es guarden en format <a href="https://www.chordpro.org" target="_blank" rel="noopener">ChordPro</a>.</p>
-    </div>`, 'Crèdits');
+      <h1>${t('Crèdits')}</h1>
+      <p>${t('Les lletres i les músiques dels cants són dels seus autors.')}</p>
+      <p>${t('Programa fet amb IA ({0}). Codi amb llicència {1}.', `<a href="https://jjdeharo.github.io/miae/?nivel=4" target="_blank" rel="noopener">${t('MIAE nivell 4')}</a>`, '<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL 3.0 o posterior</a>')}</p>
+      <p>${t('Icones de {0}, amb llicència ISC.', '<a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a>')}</p>
+      <p>${t('Les cançons es guarden en format {0}.', '<a href="https://www.chordpro.org" target="_blank" rel="noopener">ChordPro</a>')}</p>
+    </div>`, t('Crèdits'));
 }
+
+/* --- Llengua --- */
+// Canviar de llengua torna a pintar la vista. A l'editor, si hi ha canvis
+// sense desar, abans es pregunta, perquè es perdrien.
+document.getElementById('btn-llengua').addEventListener('click', () => {
+  if (window.onbeforeunload && window.onbeforeunload() && !confirm(t('Hi ha canvis sense desar. Si canvies de llengua es perdran. Vols continuar?'))) return;
+  window.onbeforeunload = null;
+  canviaLlengua(altraLlengua());
+  aplicaTema(document.documentElement.dataset.theme === 'dark', false);
+  if (dades.generat || dades.cancons.length) ruta();
+});
 
 /* --- Inici --- */
 window.addEventListener('hashchange', () => { window.onbeforeunload = null; ruta(); });
 carregaDades().then(ruta).catch((e) => {
-  $app.innerHTML = `<p class="buit">No s'han pogut carregar les cançons. ${esc(e.message)}</p>`;
+  $app.innerHTML = `<p class="buit">${t("No s'han pogut carregar les cançons. {0}", esc(e.message))}</p>`;
 });

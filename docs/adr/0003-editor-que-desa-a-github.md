@@ -1,6 +1,6 @@
 # 3. L'editor desa directament a GitHub
 
-- Estat: acceptada
+- Estat: acceptada; la clau manual, substituïda per l'entrada amb GitHub de l'[ADR 9](0009-entrada-amb-github.md)
 - Data: 2026-11-22
 
 ## Context
