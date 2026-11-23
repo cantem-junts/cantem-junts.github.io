@@ -82,8 +82,12 @@ def es_acord(t):
     return t not in ('a', 'e', 'b', 'c', 'd', 'f', 'g')
 
 def fitxes_acords(linia):
+    l = linia.replace('\t', ' ').replace('→', ' ').replace('->', ' ').replace('*', ' ')
+    l = re.sub(r'\b([A-Ga-g]|DO|RE|MI|FA|SOL|LA|SI|do|re|mi|fa|sol|la|si) #', r'\1#', l)  # «FA #»
+    l = re.sub(r'(\S)\(', r'\1 (', l)  # «LA7(RE)» són dos
     toks = [t[:-1] if len(t) > 1 and t[-1] in '.,;:' and not t.endswith('..') else t
-            for t in linia.replace('\t', ' ').split()]  # «LA.» és LA
+            for t in l.split()]  # «LA.» és LA
+    toks = [t[1:] if len(t) > 1 and t[0] == '-' and es_acord(t[1:]) else t for t in toks]  # «-LA7»
     out = []
     for t in toks:
         if out and re.fullmatch(r'm(?:7|aj7|in)?', t) and es_acord(out[-1]) and not out[-1].lower().endswith('m'):
@@ -109,7 +113,7 @@ def es_linia_acords(linia):
     if not f:
         return False
     ac = [t for t in f if es_fitxa_acord(t)]
-    return len(ac) >= 1 and all(es_fitxa_acord(t) or PUNT.match(t) for t in f)
+    return len(ac) >= 1 and all(es_fitxa_acord(t) or PUNT.match(t) or re.fullmatch(r'\(?(?:bis|x\d+|\d+x)\)?', t, re.I) for t in f)
 
 def es_separador(linia):
     s = linia.strip()
