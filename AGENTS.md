@@ -19,8 +19,7 @@ traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
 - `scripts/servidor-local.py`: serveix la web i fa d'editor local.
 - `scripts/migracio/`: eines d'un sol ús per passar el cançoner antic; després de
   `lot.py` cal `retocs.sh`, que hi torna a posar les cançons passades a mà (`a-ma/`).
-  Les presentacions de Google
-  del cançoner antic ([ADR 7](docs/adr/0007-migracio-de-les-presentacions-de-google.md)).
+  Com funciona, a l'[ADR 7](docs/adr/0007-migracio-de-les-presentacions-de-google.md).
 - `.github/workflows/pages.yml`: proves, índex i publicació a cada canvi.
   GitHub Pages ha d'estar configurat amb la font «GitHub Actions»
   (`build_type: workflow`): si publica des de la branca, aquesta publicació
