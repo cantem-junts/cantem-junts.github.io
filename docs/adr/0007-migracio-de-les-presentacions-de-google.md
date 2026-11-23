@@ -39,6 +39,14 @@ qui les va escriure va quadrar els acords mirant una lletra proporcional
 Serif, Liberation Sans i per columnes, i es tria la que deixa menys acords
 fora del final de la lletra; després, la mateixa regla de síl·labes.
 
+Les cançons que eren una imatge, i les presentacions on l'autor partia les
+línies amb espais, es llegeixen amb OCR (`scripts/migracio/imatge.py`,
+tesseract en català i castellà), que dona la posició de cada paraula; després
+la mateixa regla de síl·labes i una revisió a mà del text i dels acords contra
+la imatge. On la imatge subratlla o posa en negreta la síl·laba de l'acord, mana
+això. Les que eren un duplicat d'una altra ja passada (la mateixa cançó en un
+altre to, o la mateixa en imatge i en text) no es passen: la web ja canvia de to.
+
 ## Alternatives descartades
 
 - Convertir el text amb els espais com si fos d'amplada fixa: els acords queden
@@ -49,11 +57,11 @@ fora del final de la lletra; després, la mateixa regla de síl·labes.
 
 ## Conseqüències
 
-- 100 cançons passades de les presentacions i 18 de text. L'acord queda damunt la mateixa síl·laba que a la
+- 100 cançons passades de les presentacions, 18 de text i 10 d'imatges o
+  presentacions que s'han hagut de llegir amb OCR. L'acord queda damunt la mateixa síl·laba que a la
   diapositiva, amb els errors que ja hi hagués.
-- Les que no s'han pogut fer així es passen a mà: 12 presentacions que Google
-  ja ha esborrat (responen 410), 4 on l'autor partia les línies amb espais
-  dins d'un sol paràgraf i les cançons que eren una imatge.
+- No s'han pogut passar 12 presentacions que Google ja ha esborrat
+  (responen 410).
 
 ## Evidència
 
@@ -70,7 +78,8 @@ l'acord hi queda entremig.
 - Les síl·labes són aproximades; un acord que a la diapositiva queda entre dues
   síl·labes pot anar a la del costat. Es corregeix a l'editor.
 - Formes d'acord que la web no entén i cal revisar: `LA-7`, `SOL-7`, `f#m`,
-  `(RE- SOL- RE)`, `LA7-`.
+  `(RE- SOL- RE)`, `LA7-`. A «Bona Mare», el `SOL4/5` de l'original s'ha escrit
+  `SOL4`, perquè la web no l'entén.
 
 ## Validació
 

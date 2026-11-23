@@ -64,12 +64,14 @@ def es_tinta(fill):
 # ---------- acords ----------
 ARREL = r'(?:do|re|mi|fa|sol|la|si|[a-g])'
 ACORD = re.compile(r'^\(?' + ARREL + r'(?:[#b♯♭])?(?:m|min|maj|dim|aug|sus|add|[0-9+º°ø-])*(?:/' + ARREL + r'[#b]?)?\)?$', re.I)
-PUNT = re.compile(r'^[\.\-–—…·|/\\:,;()x0-9*]+$')
+PUNT = re.compile(r'^[\.\-–—…·|/\\:,;()x0-9*>→]+$')
 
 def es_fitxa_acord(t):
     return es_acord(t) if t.startswith('(') else es_acord(t.replace(' ', ''))
 
 def es_acord(t):
+    if len(t) > 1 and t[-1] in '.,;:' and not t.endswith('..'):
+        t = t[:-1]  # «SOL.» al final d'un grup
     if re.fullmatch(r'[^-\s]+(?:-[^-\s]+)+', t):  # «la-FA», «DO-SOL7»: dos acords seguits
         return all(es_acord(x) for x in t.split('-'))
     if t.startswith('(') and t.endswith(')') and ' ' in t:
@@ -99,7 +101,7 @@ def fitxes_acords(linia):
         else:
             junts.append(t)
             obert = t.startswith('(') and ')' not in t
-    return junts
+    return [t[:-1] if len(t) > 1 and t[-1] in '.,;:' and es_acord(t) and not es_acord(t + 'x') else t for t in junts]
 
 def es_linia_acords(linia):
     f = fitxes_acords(linia)
@@ -349,7 +351,7 @@ def converteix(slides, titol):
             elif it['t'] == 'image':
                 avis(f'diapositiva {ns + 1}: hi ha una imatge')
         for cx in caixes:
-            text = cx['label'].replace('\u000b', '\n').replace('\r', '')
+            text = unicodedata.normalize('NFKC', cx['label']).replace('\u000b', '\n').replace('\r', '')  # 𝐒𝐎𝐋 → SOL
             crues = text.split('\n')
             linies = []
             for r in crues:

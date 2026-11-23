@@ -1,39 +1,23 @@
 {title: Crist ha ressuscitat}
 {meta: etiquetes Pasqua}
 
-{comment: Lami re la}
+[SOL]Germans, [RE]avui és [DO]un dia [SOL]gran!
+Je[DO]sús ha [RE]ressusci[SOL]tat! Déu Pa[RE]re l’ha [mim]glorificat
+i és Se[DO]nyor de l’univers i espe[lam]rança per [RE7]qui creu
 
-𝐒𝐎𝐋 𝐑𝐄 𝐃𝐎 𝐒𝐎𝐋
-Germans, avui és un dia gran!
-𝐃𝐎 𝐑𝐄 𝐒𝐎𝐋 𝐑𝐄 𝐦𝐢𝐦
-Jesús ha ressuscitat! Déu Pare l’ha glorificat
-𝐃𝐎 	                            𝐥𝐚𝐦 𝐑𝐄𝟕
-i és Senyor de l’univers i esperança per qui creu
+[SOL]Germans, [RE]avui és [DO]un dia [SOL]gran!
+Je[DO]sús viu [RE]al nostre [SOL]cor! La vi[RE]da ha vençut [mim]la mort,
+pro[DO]clamem [lam]tots amb fe
+que [RE7]Ell és viu i que som lliures! Perquè...
 
-𝐒𝐎𝐋 𝐑𝐄 𝐃𝐎 𝐒𝐎𝐋
-Germans, avui és un dia gran!
-𝐃𝐎 𝐑𝐄 𝐒𝐎𝐋 𝐑𝐄 𝐦𝐢𝐦
-Jesús viu al nostre cor! La vida ha vençut la mort,
-𝐃𝐎 𝐥𝐚𝐦
-proclamem tots amb fe
-𝐑𝐄𝟕
-que Ell és viu i que som lliures! Perquè...
-
-𝐒𝐎𝐋 𝐃𝐎
-Crist ha ressuscitat!
-𝐑𝐄 𝐒𝐎𝐋 𝐑𝐄𝟕
-Crist viu entre nosaltres!
-𝐒𝐎𝐋𝟕 𝐃𝐎 𝐝𝐨𝐦
-Crist ha ressuscitat!
-
-{comment: 𝐒𝐎𝐋 𝐅𝐀 𝐑𝐄𝟕 -> sol}
-
-Al·leluia! Al·leluia!
+Crist [SOL]ha res[DO]suscitat!
+[RE]Crist viu [SOL]entre no[RE7]saltres!
+Crist [SOL7]ha res[DO]susci[dom]tat!
+Al·[SOL]leluia! Al·[FA]lelu[RE7]ia![SOL]
 
 [DO]Germans, a[SOL]vui és un [FA]dia [DO]gran!
 Je[FA]sús ha res[SOL]susci[DO]tat!
-SOL. lam
-Déu Pare l’ha glorificat
+Déu [SOL]Pare l’ha glo[lam]rificat
 [FA]i és Senyor de l’univers,
 espe[rem]rança per qui [SOL7]creu.
 
@@ -64,52 +48,31 @@ ens dona el seu Esperit.
 Ell serà per a tots
 esperança i fortalesa perquè...
 
-𝐃𝐎 𝐒𝐎𝐋 𝐅𝐀 𝐃𝐎
-Germans, avui és un dia gran!
-𝐅𝐀 𝐒𝐎𝐋 mi 𝐒𝐎𝐋 𝐥𝐚𝐦
-Jesús ha ressuscitat! Déu Pare l’ha glorificat
-𝐅𝐀					 𝐫𝐞𝐦 𝐒𝐎𝐋𝟕
-i és Senyor de l’univers,esperança per qui creu
+[DO]Germans, [SOL]avui és [FA]un dia [DO]gran!
+Je[FA]sús ha res[SOL]susci[mi]tat! Déu [SOL]Pare l’ha [lam]glorificat
+i és [FA]Senyor de l’univers,espe[rem]rança per qui [SOL7]creu
 
-𝐃𝐎 𝐒𝐎𝐋 𝐅𝐀 𝐃𝐎
-Germans, avui és un dia gran!
-𝐅𝐀 𝐒𝐎𝐋 𝐃𝐎 𝐒𝐎𝐋 𝐥𝐚𝐦
-Jesús viu al nostre cor! La vida ha vençut la mort
-𝐅𝐀 𝐫𝐞𝐦
-proclamem tots amb fe
-𝐒𝐎𝐋𝟕
-que Ell és viu i que som lliures! Perquè...
+[DO]Germans, [SOL]avui és [FA]un dia [DO]gran!
+Je[FA]sús viu [SOL]al nostre [DO]cor! [SOL]La vida ha [lam]vençut la mort
+pro[FA]clamem [rem]tots amb fe
+que [SOL7]Ell és viu i que som lliures! Perquè...
 
-𝐃𝐎 𝐅𝐀
+{start_of_chorus}
+[DO]CRIST HA [FA]RESSUSCITAT!
+[SOL]CRIST VIU [DO]ENTRE [SOL7]NOSALTRES!
+[DO7]CRIST HA [FA]RESSUS[fam]CITAT!
+{end_of_chorus}
 
-{comment: Crist ha ressuscitat!}
-
-𝐒𝐎𝐋 𝐃𝐎 𝐒𝐎𝐋𝟕
-
-{comment: Crist viu entre nosaltres!}
-
-𝐃𝐎𝟕 𝐅𝐀 𝐟𝐚𝐦
-
-{comment: Crist ha ressuscitat!}
-
-𝐃𝐎 𝐒𝐈♭ 𝐒𝐎𝐋𝟕 (bis) -> DO
+DO SI♭ SOL7 (bis) -> DO
 
 {comment: Al·leluia! al·leluia!}
 
-𝐃𝐎 𝐒𝐎𝐋 𝐅𝐀 𝐃𝐎
-Germans, avui és un dia gran.
-𝐃𝐎			𝐅𝐀
-Jesús dona a tots la pau Camina al nostre costat
-𝐫𝐞𝐦		   𝐒𝐎𝐋𝟕
-Ell canvia els nostres cors i ens fa uns homes nous
+[DO]Germans, [SOL]avui és [FA]un dia [DO]gran.
+Jesús dona a tots [DO]la pau Cami[FA]na al nostre costat
+Ell canvia els nos[rem]tres cors i ens [SOL7]fa uns homes nous
 
-𝐃𝐎 𝐒𝐎𝐋 𝐅𝐀 𝐃𝐎
-Germans, avui és un dia gran.
-𝐃𝐎
-Jesús mai no ens deixarà,
-𝐅𝐀
-ens dona el seu Esperit.
-𝐫𝐞𝐦
-Ell serà per a tots
-𝐒𝐎𝐋𝟕
-esperança i fortalesa perquè...
+[DO]Germans, [SOL]avui és [FA]un dia [DO]gran.
+Jesús mai no [DO]ens deixarà,
+ens dona el [FA]seu Esperit.
+Ell serà per a [rem]tots
+esperança i for[SOL7]talesa perquè...
