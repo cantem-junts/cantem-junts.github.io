@@ -82,7 +82,8 @@ def es_acord(t):
     return t not in ('a', 'e', 'b', 'c', 'd', 'f', 'g')
 
 def fitxes_acords(linia):
-    toks = linia.replace('\t', ' ').split()
+    toks = [t[:-1] if len(t) > 1 and t[-1] in '.,;:' and not t.endswith('..') else t
+            for t in linia.replace('\t', ' ').split()]  # «LA.» és LA
     out = []
     for t in toks:
         if out and re.fullmatch(r'm(?:7|aj7|in)?', t) and es_acord(out[-1]) and not out[-1].lower().endswith('m'):
