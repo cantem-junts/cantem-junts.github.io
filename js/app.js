@@ -307,6 +307,185 @@ function triaColumnes() {
 window.addEventListener('resize', reajusta);
 if (document.fonts) document.fonts.ready.then(reajusta);
 
+/* --- Faristol: la cançó a pantalla completa, per tocar ---
+   La lletra es fa tan gran com permet l'amplada (la línia llarga de la cançó
+   omple la columna) i es passa pàgina tocant la meitat dreta o esquerra, amb
+   un pedal (teclat) o lliscant. Les pàgines són columnes CSS: cada pàgina és
+   una o dues columnes i es mou amb scrollLeft. */
+const FARISTOL = { min: 16, max: 36, dues: 22, base: 20, gap: 48 };
+let faristol = null;
+
+// «ambit» és la part que es mesura: tota la cançó o un sol cant de la celebració.
+function midaPerAmplada(contingut, amplada, ambit = contingut) {
+  // Amplada natural de cada línia a la mida base, sense partir.
+  contingut.classList.add('mesura');
+  contingut.style.fontSize = `${FARISTOL.base}px`;
+  contingut.querySelectorAll('.moment').forEach((m) => { m.style.fontSize = ''; });
+  const esq = contingut.getBoundingClientRect().left;
+  const amples = [...ambit.querySelectorAll('.linia')]
+    .map((l) => l.getBoundingClientRect().right - esq)
+    .filter((w) => w > 0)
+    .sort((a, b) => a - b);
+  contingut.classList.remove('mesura');
+  if (!amples.length) return FARISTOL.max;
+  // Mana la línia més llarga, perquè no se'n parteixi cap; només si és molt
+  // més llarga que les altres es deixa partir, perquè no ho faci tot petit.
+  const llarga = amples[amples.length - 1];
+  const quasi = amples[Math.floor((amples.length - 1) * 0.9)];
+  const ref = llarga > quasi * 1.25 ? quasi : llarga;
+  return FARISTOL.base * amplada / ref;
+}
+
+function obreFaristol() {
+  const origen = document.getElementById('canco');
+  if (!origen || faristol) return;
+  const titol = document.querySelector('.encap-canco h1')?.textContent || '';
+  const el = document.createElement('div');
+  el.className = 'faristol';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-label', `Faristol: ${titol}`);
+  el.innerHTML = `
+    <div class="faristol-capa">
+      <span class="faristol-titol"></span>
+      <span class="faristol-pagina" aria-live="polite"></span>
+      <div class="grup" role="group" aria-label="Mida de la lletra">
+        <button class="boto" data-f="petita" title="Lletra més petita">A−</button>
+        <button class="boto" data-f="gran" title="Lletra més gran">A+</button>
+      </div>
+      <button class="boto" data-f="tanca" title="Surt del faristol"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="faristol-marc">
+      <div class="faristol-text canco${origen.classList.contains('sense-acords') ? ' sense-acords' : ''}">${origen.innerHTML}</div>
+    </div>`;
+  document.body.appendChild(el);
+  document.body.classList.add('amb-faristol');
+  const text = el.querySelector('.faristol-text');
+  const marc = el.querySelector('.faristol-marc');
+  const rotolTitol = el.querySelector('.faristol-titol');
+  const rotolPagina = el.querySelector('.faristol-pagina');
+  // A la celebració, el títol de cada cant fa de capçalera de la pàgina.
+  const moments = [...text.querySelectorAll('.moment')];
+  let pagina = 0;
+  let pagines = 1;
+  let pas = 1;
+  let escala = Number(pref.get('mida-faristol', '1'));
+
+  const situa = () => {
+    pagina = Math.max(0, Math.min(pagines - 1, pagina));
+    text.scrollLeft = pagina * pas;
+    rotolPagina.textContent = pagines > 1 ? `${pagina + 1}/${pagines}` : '';
+    let nom = titol;
+    if (moments.length) {
+      const esq = text.getBoundingClientRect().left;
+      let actual = moments[0];
+      for (const m of moments) {
+        const x = m.getBoundingClientRect().left - esq;
+        if (x < pas - FARISTOL.gap / 2) actual = m; else break;
+      }
+      const tipus = actual.querySelector('.tipus-moment')?.textContent;
+      const nomCant = actual.querySelector('h2')?.textContent || '';
+      nom = tipus ? `${tipus} · ${nomCant}` : nomCant;
+    }
+    rotolTitol.textContent = nom;
+  };
+
+  const maqueta = () => {
+    const primer = text.scrollLeft && pas ? text.scrollLeft / pas : pagina;
+    text.style.columnWidth = '';
+    text.style.columnCount = '';
+    text.scrollLeft = 0;
+    const amplada = marc.clientWidth - parseFloat(getComputedStyle(marc).paddingLeft) * 2;
+    const alcada = marc.clientHeight - parseFloat(getComputedStyle(marc).paddingTop) * 2;
+    const una = Math.min(FARISTOL.max, Math.max(FARISTOL.min, midaPerAmplada(text, amplada)));
+    const ampleDues = (amplada - FARISTOL.gap) / 2;
+    const dues = Math.min(FARISTOL.max, midaPerAmplada(text, ampleDues));
+    // Dues columnes només si la lletra hi continua sent grossa.
+    const columnes = amplada > alcada && dues >= FARISTOL.dues ? 2 : 1;
+    const ampleColumna = columnes === 2 ? ampleDues : amplada;
+    const limita = (m) => Math.min(FARISTOL.max, Math.max(FARISTOL.min, m)) * escala;
+    // A la celebració, cada cant amb la seva mida: un de línies llargues no
+    // fa petits els altres.
+    const mides = moments.map((m) => limita(midaPerAmplada(text, ampleColumna, m)));
+    text.style.fontSize = `${limita(columnes === 2 ? dues : una)}px`;
+    moments.forEach((m, i) => { m.style.fontSize = `${mides[i]}px`; });
+    text.style.height = `${alcada}px`;
+    text.style.columnCount = '';
+    text.style.columnWidth = `${ampleColumna}px`;
+    text.style.columnGap = `${FARISTOL.gap}px`;
+    ajustaAcords(text);
+    pas = amplada + FARISTOL.gap;
+    pagines = Math.max(1, Math.round((text.scrollWidth + FARISTOL.gap) / pas));
+    pagina = Math.round(primer) || 0;
+    situa();
+  };
+
+  const avanca = (d) => { pagina += d; situa(); };
+  const tanca = () => {
+    window.removeEventListener('resize', alRedimensionar);
+    document.removeEventListener('keydown', teclat);
+    document.removeEventListener('visibilitychange', demanaPantalla);
+    if (bloqueig) bloqueig.release().catch(() => {});
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    el.remove();
+    document.body.classList.remove('amb-faristol');
+    faristol = null;
+    if (history.state && history.state.faristol) history.back();
+  };
+  const teclat = (e) => {
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); avanca(1); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); avanca(-1); }
+    else if (e.key === 'Escape') tanca();
+  };
+  let espera = null;
+  const alRedimensionar = () => { clearTimeout(espera); espera = setTimeout(maqueta, 120); };
+
+  // Tocar a la dreta avança, a l'esquerra torna; lliscar també.
+  let inici = null;
+  marc.addEventListener('pointerdown', (e) => { inici = { x: e.clientX, y: e.clientY }; });
+  marc.addEventListener('pointerup', (e) => {
+    if (!inici) return;
+    const dx = e.clientX - inici.x;
+    const dy = e.clientY - inici.y;
+    inici = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) return avanca(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+      const r = marc.getBoundingClientRect();
+      avanca(e.clientX > r.left + r.width / 2 ? 1 : -1);
+    }
+  });
+  marc.addEventListener('click', (e) => e.preventDefault());
+  el.querySelector('.faristol-capa').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-f]');
+    if (!b) return;
+    if (b.dataset.f === 'tanca') return tanca();
+    escala = Math.round(Math.min(1.8, Math.max(0.6, escala + (b.dataset.f === 'gran' ? 0.1 : -0.1))) * 10) / 10;
+    pref.set('mida-faristol', escala === 1 ? null : escala);
+    maqueta();
+  });
+
+  // Que la pantalla no s'apagui mentre es toca.
+  let bloqueig = null;
+  const demanaPantalla = async () => {
+    if (document.visibilityState !== 'visible' || !('wakeLock' in navigator)) return;
+    try { bloqueig = await navigator.wakeLock.request('screen'); } catch (err) { /* no disponible */ }
+  };
+  demanaPantalla();
+  document.addEventListener('visibilitychange', demanaPantalla);
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {}).finally(() => setTimeout(maqueta, 150));
+  }
+  window.addEventListener('resize', alRedimensionar);
+  document.addEventListener('keydown', teclat);
+  // El botó «enrere» del mòbil tanca el faristol en lloc de sortir de la cançó.
+  history.pushState({ faristol: true }, '', location.href);
+  faristol = { tanca };
+  maqueta();
+  el.querySelector('[data-f="tanca"]').focus({ preventScroll: true });
+}
+window.addEventListener('popstate', () => {
+  if (faristol) { const f = faristol; faristol = null; history.replaceState(null, '', location.href); f.tanca(); }
+});
+
 /* --- Rutes --- */
 const estatLlista = { q: '', pestanya: 'cants', etiqueta: null };
 
@@ -318,6 +497,7 @@ async function ruta() {
   vistaActual = new AbortController();
   const hash = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
   const [primer, segon, tercer] = hash.split('/');
+  if (faristol) { const f = faristol; faristol = null; f.tanca(); }
   document.getElementById('btn-nou').hidden = !(await potEditar());
   tancaSelector();
   if (!primer) return vistaLlista();
@@ -443,6 +623,7 @@ function vistaLlista() {
 /* --- Controls comuns de la vista --- */
 function htmlControlsVista(ambTo) {
   return `
+    <button class="boto boto-principal boto-faristol" data-acc="faristol" title="Pantalla completa amb la lletra grossa, per tocar: toca la dreta per passar pàgina"><svg><use href="#i-faristol"/></svg><span>Faristol</span></button>
     ${ambTo ? `<div class="grup" role="group" aria-label="To">
       <button class="boto" data-acc="baixa" title="Baixa mig to"><svg><use href="#i-minus"/></svg></button>
       <button class="boto valor" data-acc="to-original" id="valor-to" title="Torna al to original"></button>
@@ -481,6 +662,8 @@ function gestionaControls(barra, repinta, salt) {
       b.setAttribute('aria-pressed', opcions.acords);
       document.querySelector('.canco')?.classList.toggle('sense-acords', !opcions.acords);
       reajusta();
+    } else if (acc === 'faristol') {
+      obreFaristol();
     } else if (acc === 'imprimeix') {
       window.print();
     } else if (acc === 'comparteix') {

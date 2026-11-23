@@ -10,6 +10,10 @@ Cançoner de cants per a la missa, amb la lletra i els acords. Substituirà
   americana (C, Am). Cada dispositiu recorda el to triat de cada cançó.
 - **Celebracions**: la llista de cants d'una missa, en ordre, amb el moment
   de cadascun (Entrada, Glòria…) i textos com el salm.
+- **Faristol**: per tocar a la missa amb la tauleta o el mòbil. La cançó o la
+  celebració a pantalla completa, amb la lletra tan grossa com hi càpiga, i
+  es passa pàgina tocant la meitat dreta (o amb un pedal). La pantalla no
+  s'apaga.
 - **Editor** a la mateixa web: s'enganxa la lletra amb els acords a sobre i
   es col·loquen sols, o es toca la síl·laba i es tria l'acord.
 
