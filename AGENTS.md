@@ -17,6 +17,8 @@ traduccions ([ADR 5](docs/adr/0005-interficie-nomes-en-catala.md)).
 - `scripts/index.mjs`: genera `dades/index.json` (no es versiona). Falla si
   una celebració cita una cançó que no existeix.
 - `scripts/servidor-local.py`: serveix la web i fa d'editor local.
+- `scripts/migracio/`: eines d'un sol ús per passar les presentacions de Google
+  del cançoner antic ([ADR 7](docs/adr/0007-migracio-de-les-presentacions-de-google.md)).
 - `.github/workflows/pages.yml`: proves, índex i publicació a cada canvi.
 
 ## Regles

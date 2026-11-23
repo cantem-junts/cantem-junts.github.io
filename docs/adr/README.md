@@ -11,3 +11,4 @@ alternatives descartades i les conseqüències. Plantilla: [0000](0000-plantilla
 | 4 | [Els acords es mostren tal com s'escriuen](0004-notacio-dels-acords.md) |
 | 5 | [Interfície només en català](0005-interficie-nomes-en-catala.md) |
 | 6 | [Editor d'acords amb pinzell i goma](0006-editor-d-acords-amb-pinzell-i-goma.md) |
+| 7 | [Migració de les presentacions de Google llegint la posició dels traços](0007-migracio-de-les-presentacions-de-google.md) |
