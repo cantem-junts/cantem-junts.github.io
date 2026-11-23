@@ -70,6 +70,8 @@ def es_fitxa_acord(t):
     return es_acord(t) if t.startswith('(') else es_acord(t.replace(' ', ''))
 
 def es_acord(t):
+    if re.fullmatch(r'[^-\s]+(?:-[^-\s]+)+', t):  # «la-FA», «DO-SOL7»: dos acords seguits
+        return all(es_acord(x) for x in t.split('-'))
     if t.startswith('(') and t.endswith(')') and ' ' in t:
         return all(es_acord(x) for x in t[1:-1].split())
     if not ACORD.match(t):
@@ -316,15 +318,15 @@ def col_loca(acords, lletra, xs):
     inicis = inicis_sillaba(lletra)
     ins = {}
     fi_x = xs[-1] if xs else 0
+    amp_c = (xs[-1] - xs[0]) / max(len(lletra.strip()) - 1, 1) if xs else 1
     for nom, x in acords:
         if not lletra.strip():
             continue
-        if x > fi_x + 8 and xs:
+        if x > fi_x + 1.5 * amp_c and xs:
             pos = len(lletra.rstrip())
         else:
             cand = inicis or [0]
             pos = min(cand, key=lambda p: abs(xs[p] - x) if p < len(xs) else 1e9)
-            amp_c = (xs[-1] - xs[0]) / max(len(lletra.strip()) - 1, 1)
             DESV.append(((xs[pos] - x) / max(amp_c, 0.1), nom, lletra))
         ins.setdefault(pos, []).append(nom)
     out = ''
@@ -428,7 +430,11 @@ def converteix(slides, titol):
                 estrofa.append(' '.join('[' + a + ']' for a, _ in pendents))
             if estrofa:
                 blocs.append(estrofa)
-    # sortida
+    return escriu(blocs, titol)
+
+
+def escriu(blocs, titol):
+    """Estrofes (llistes de línies ChordPro) → text ChordPro, amb tornades i rètols."""
     out = ['{title: ' + titol + '}', '']
     def es_maj(l):
         t = re.sub(r'\[[^\]]*\]', '', l).strip()

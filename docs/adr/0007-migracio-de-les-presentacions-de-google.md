@@ -32,6 +32,13 @@ dibuixa les lletres. `scripts/migracio/convertir.py`:
 `scripts/migracio/lot.py` ho fa per a totes i hi afegeix les etiquetes
 (Nadal, Maria, Pasqua) que tenien al TiddlyWiki.
 
+Les 18 cançons que eren text amb els acords a sobre (`scripts/migracio/text.py`,
+amb les dades de `extreu.py`) no estaven alineades en lletra d'amplada fixa:
+qui les va escriure va quadrar els acords mirant una lletra proporcional
+(sovint Times New Roman). Per a cada cançó es mesuren les línies amb Liberation
+Serif, Liberation Sans i per columnes, i es tria la que deixa menys acords
+fora del final de la lletra; després, la mateixa regla de síl·labes.
+
 ## Alternatives descartades
 
 - Convertir el text amb els espais com si fos d'amplada fixa: els acords queden
@@ -42,7 +49,7 @@ dibuixa les lletres. `scripts/migracio/convertir.py`:
 
 ## Conseqüències
 
-- 100 cançons passades. L'acord queda damunt la mateixa síl·laba que a la
+- 100 cançons passades de les presentacions i 18 de text. L'acord queda damunt la mateixa síl·laba que a la
   diapositiva, amb els errors que ja hi hagués.
 - Les que no s'han pogut fer així es passen a mà: 12 presentacions que Google
   ja ha esborrat (responen 410), 4 on l'autor partia les línies amb espais
