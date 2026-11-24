@@ -12,12 +12,11 @@ permissions:
 concurrency:
   group: pages
   cancel-in-progress: false
+# Dues feines: si es puja i es publica a la mateixa, de vegades GitHub encara
+# no troba el paquet que s'acaba de pujar (actions/deploy-pages#451).
 jobs:
-  publica:
+  construeix:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.desplegament.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,5 +28,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
+  publica:
+    needs: construeix
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.desplegament.outputs.page_url }}
+    steps:
       - id: desplegament
         uses: actions/deploy-pages@v4

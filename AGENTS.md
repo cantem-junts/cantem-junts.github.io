@@ -23,7 +23,8 @@ tradueixen.
 - `scripts/migracio/`: eines d'un sol ús per passar el cançoner antic; després de
   `lot.py` cal `retocs.sh`, que hi torna a posar les cançons passades a mà (`a-ma/`).
   Com funciona, a l'[ADR 7](docs/adr/0007-migracio-de-les-presentacions-de-google.md).
-- `.github/workflows/pages.yml`: proves, índex i publicació a cada canvi.
+- `.github/workflows/pages.yml`: proves, índex i publicació a cada canvi, en
+  dues feines (construir i publicar) per esquivar actions/deploy-pages#451.
   GitHub Pages ha d'estar configurat amb la font «GitHub Actions»
   (`build_type: workflow`): si publica des de la branca, aquesta publicació
   sense `dades/index.json` trepitja la bona i la web no carrega les cançons.
