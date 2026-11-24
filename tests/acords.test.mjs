@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   llegeixAcord, esEtiquetaDAcords, transposaEtiqueta, acordsASobreAChordPro,
   llegeixChordPro, posaAcord, lletraNeta, toDeLaCanco, nomDelTo, usaBemolls, acordsDeLaCanco, canviaNegreta,
-  sillabes, canviaNegretaSillaba, canviaTornada, posaNota, treuNota,
+  sillabes, acordsBasics, canviaNegretaSillaba, canviaTornada, posaNota, treuNota,
 } from '../js/acords.js';
 
 test('reconeix els acords tal com s’escriuen al cançoner', () => {
@@ -187,4 +187,16 @@ test('posa, canvia i treu notes', () => {
   assert.equal(posaNota('aa\n{comment: X}\nbb', 1, 'Y'), 'aa\n{comment: Y}\nbb');
   assert.equal(treuNota('aa\n{comment: X}\nbb', 1), t);
   assert.equal(treuNota(t, 1), t);
+});
+
+test('els catorze acords bàsics, escrits com a la cançó', () => {
+  const noms = (f) => { const b = acordsBasics(f); return [b.majors.map((x) => x.text).join(' '), b.menors.map((x) => x.text).join(' '), b.altres.join(' ')]; };
+  // Menor en minúscula sola, com la cançó.
+  assert.deepEqual(noms('[SOL]a [la]b [RE7]c'), ['DO RE MI FA SOL LA SI', 'do re mi fa sol la si', 'RE7']);
+  // Menor amb «m» i un de la cançó escrit a la seva manera.
+  assert.deepEqual(noms('[Sol]a [mim]b'), ['DO RE MI FA Sol LA SI', 'dom rem mim fam solm lam sim', '']);
+  // Notació americana.
+  assert.deepEqual(noms('[C]a [Am]b [G7]c'), ['C D E F G A B', 'Cm Dm Em Fm Gm Am Bm', 'G7']);
+  // Quins ja fa servir.
+  assert.deepEqual(acordsBasics('[DO]a').majors.filter((x) => x.usat).map((x) => x.text), ['DO']);
 });

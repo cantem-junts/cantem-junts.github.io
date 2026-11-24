@@ -604,4 +604,30 @@ export function acordsDeLaCanco(font) {
   return [...vistos.keys()];
 }
 
+// Els catorze acords bàsics (les set notes, majors i menors) per a la barra de
+// l'editor, escrits com els escriu la cançó si ja els fa servir i, si no, amb
+// la seva notació i el seu estil de menor. «altres»: els de la cançó que no hi
+// són (setenes, sostinguts…).
+export function acordsBasics(font) {
+  const usats = acordsDeLaCanco(font).map((text) => ({ text, a: llegeixAcord(text) })).filter((x) => x.a);
+  const america = usats.filter((x) => x.a.notacio === 'america').length > usats.filter((x) => x.a.notacio === 'llati').length;
+  const menorDeLaCanco = usats.find((x) => x.a.menor && x.a.notacio === 'llati' && !x.a.baix);
+  const estilMenor = !menorDeLaCanco ? 'm'
+    : /^ m$/.test(menorDeLaCanco.a.sufix) ? ' m'
+    : menorDeLaCanco.a.sufix === '' ? '' : 'm';
+  const esBasic = (x, semito, menor) => !x.a.baix && x.a.alteracio === 0 && x.a.semito === semito && x.a.menor === menor
+    && (menor ? /^(?: ?m)?$/.test(x.a.sufix) : x.a.sufix === '');
+  const fila = (menor) => LLATI.map((nota, k) => {
+    const semito = LLATI_SEMITO[nota];
+    const usat = usats.find((x) => esBasic(x, semito, menor));
+    if (usat) return { text: usat.text, usat: true };
+    const nom = america ? 'CDEFGAB'[k] + (menor ? 'm' : '') : (menor ? nota + estilMenor : nota.toUpperCase());
+    return { text: nom, usat: false };
+  });
+  const majors = fila(false);
+  const menors = fila(true);
+  const textos = new Set([...majors, ...menors].map((x) => x.text));
+  return { majors, menors, altres: acordsDeLaCanco(font).filter((a) => !textos.has(a)) };
+}
+
 export { LLATI };

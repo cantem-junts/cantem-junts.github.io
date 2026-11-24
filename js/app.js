@@ -4,7 +4,7 @@
 
 import {
   llegeixChordPro, transposaEtiqueta, toDeLaCanco, usaBemolls, nomDelTo, lletraNeta,
-  acordsASobreAChordPro, tensAcordsASobre, posaAcord, acordsDeLaCanco, posicioFont, canviaNegretaSillaba, canviaTornada, posaNota, treuNota, LLATI,
+  acordsASobreAChordPro, tensAcordsASobre, posaAcord, acordsBasics, posicioFont, canviaNegretaSillaba, canviaTornada, posaNota, treuNota, LLATI,
 } from './acords.js';
 import { esLocal, potEditar, desaFitxer, esborraFitxer, usuari, iniciaSessio, completaRetorn, tancaSessio } from './desament.js';
 import { t, llengua, canviaLlengua, altraLlengua, traduixEstatics } from './llengua.js';
@@ -949,9 +949,15 @@ async function editorCanco(slug) {
   const historial = [];
   const $barra = document.getElementById('ed-barra');
   const pintaBarra = () => {
-    const acords = [...new Set([...acordsDeLaCanco($text.value), ...extres])];
+    // Les set notes, majors i menors, sempre a mà; les que ja fa servir la
+    // cançó, amb el color dels acords. Després, la resta d'acords de la cançó.
+    const { majors, menors, altres } = acordsBasics($text.value);
+    const basics = new Set([...majors, ...menors].map((x) => x.text));
+    const acords = [...new Set([...altres, ...extres])].filter((a) => !basics.has(a));
+    const xip = (a, usat = true) => `<button class="boto xip${usat ? '' : ' xip-nou'}" data-pinzell="${esc(a)}" aria-pressed="${eina?.acord === a}" title="${t('Posa {0} on toquis', esc(a))}">${esc(a)}</button>`;
     $barra.innerHTML = `
-      <div class="xips">${acords.map((a) => `<button class="boto xip" data-pinzell="${esc(a)}" aria-pressed="${eina?.acord === a}" title="${t('Posa {0} on toquis', esc(a))}">${esc(a)}</button>`).join('')}
+      <div class="xips-basics">${[...majors, ...menors].map((x) => xip(x.text, x.usat)).join('')}</div>
+      <div class="xips">${acords.map((a) => xip(a)).join('')}
         <button class="boto" data-altre title="${t('Un acord que no és a la barra')}"><svg><use href="#i-plus"/></svg>${t('Altre')}</button></div>
       <div class="eines-marca">
         <button class="boto boto-negreta" data-marca="negreta" aria-pressed="${!!eina?.negreta}" aria-label="${t('Negreta')}" title="${t('Negreta: toca una síl·laba per posar-la o treure-la en negreta (la síl·laba forta)')}">${t('N')}</button>

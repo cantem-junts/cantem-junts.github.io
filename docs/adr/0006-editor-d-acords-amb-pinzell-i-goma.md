@@ -22,9 +22,13 @@ L'editor té dues meitats, que al mòbil són dues pestanyes:
   amb els acords a la línia de sobre, es col·loquen sols. No hi ha botons.
 - **«Marcar»**: tota la resta, tocant la lletra amb una eina de la barra, sense
   finestres ni seleccions:
-  - **Els acords de la cançó** com a pinzells: se'n tria un i cada síl·laba
-    que es toca el rep. Sobre un acord que ja hi és, el canvia. **«Altre»**,
-    per a un acord que no hi és; queda a la barra.
+  - **Els acords** com a pinzells: se'n tria un i cada síl·laba que es toca
+    el rep. Sobre un acord que ja hi és, el canvia. A la barra hi ha sempre
+    els catorze bàsics (les set notes, majors i menors), escrits com els
+    escriu la cançó (`acordsBasics`): els que ja fa servir, amb el color dels
+    acords, i els altres, més apagats. Darrere, la resta d'acords de la cançó
+    (setenes, sostinguts…) i **«Altre»**, per a un acord que no hi és; queda a
+    la barra.
   - **«N»**: tocar una lletra posa en negreta la seva síl·laba (la síl·laba
     forta); tocar una lletra que ja és negreta la treu de tot aquell tros. La
     síl·laba l'endevina `sillabes` (`js/acords.js`), amb les regles comunes
@@ -43,6 +47,13 @@ L'editor té dues meitats, que al mòbil són dues pestanyes:
 Sense cap eina triada, tocar la lletra només avisa que cal triar-ne una.
 
 ## Alternatives descartades
+
+- Només els acords que ja fa servir la cançó: per a qualsevol altre calia
+  passar per «Altre» (tres tocs). Juanjo va voler que qui edita ho tingui tot
+  a mà.
+- Els acords del to de la cançó en lloc dels catorze bàsics: ocupen menys al
+  mòbil, però canvien de lloc d'una cançó a l'altra. Juanjo va triar els
+  catorze fixos.
 
 - La finestra per a cada síl·laba (la primera versió): massa passos.
 - Arrossegar sense mantenir premut al mòbil: impediria desplaçar la pàgina
@@ -67,13 +78,15 @@ estrofa deixa una línia en blanc, perquè no s'ajuntin.
 - 22-11-2026: `probar-web` amb un guió de pinzell, goma, desfés, «Altre» i
   arrossegar amb el ratolí a Chromium, Firefox i WebKit, a mòbil i escriptori;
   arrossegar amb el dit, simulat amb esdeveniments tàctils a Chromium.
-- 24-11-2026: `npm test` (síl·labes, negreta d'un toc, tornada i notes) i
-  `probar-web` amb `tests/navegador/pasos-marcar.cjs` (goma i desfés d'un
-  acord, negreta, tornada, nota, goma sobre la nota i desfés) a Chromium,
+- 24-11-2026: `npm test` (síl·labes, acords bàsics, negreta d'un toc,
+  tornada i notes) i `probar-web` amb `tests/navegador/pasos-marcar.cjs` (un
+  acord bàsic que la cançó no feia servir, goma i desfés d'un acord, negreta, tornada, nota, goma sobre la nota i desfés) a Chromium,
   Firefox i WebKit, a escriptori, mòbil i tauleta.
 
 ## Riscos i limitacions
 
+- Al mòbil la barra, que queda fixa a dalt, ocupa unes cinc files i tapa
+  prop d'un terç de la pantalla.
 - Arrossegar amb el dit no s'ha pogut simular a Firefox ni a Safari de mòbil:
   cal provar-ho en un mòbil de veritat.
 - Les síl·labes es parteixen amb regles generals: hi pot haver casos dubtosos

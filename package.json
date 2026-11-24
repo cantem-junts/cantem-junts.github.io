@@ -1,1 +1,1 @@
-{"name":"cantem-junts","private":true,"type":"module","version":"0.5.0","license":"AGPL-3.0-or-later","scripts":{"test":"node --test tests/*.test.mjs","index":"node scripts/index.mjs"}}
+{"name":"cantem-junts","private":true,"type":"module","version":"0.6.0","license":"AGPL-3.0-or-later","scripts":{"test":"node --test tests/*.test.mjs","index":"node scripts/index.mjs"}}
