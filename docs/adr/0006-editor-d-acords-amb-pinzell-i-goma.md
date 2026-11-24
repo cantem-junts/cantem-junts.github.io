@@ -26,9 +26,11 @@ L'editor té dues meitats, que al mòbil són dues pestanyes:
     el rep. Sobre un acord que ja hi és, el canvia. A la barra hi ha sempre
     els catorze bàsics (les set notes, majors i menors), escrits com els
     escriu la cançó (`acordsBasics`): els que ja fa servir, amb el color dels
-    acords, i els altres, més apagats. Darrere, la resta d'acords de la cançó
-    (setenes, sostinguts…) i **«Altre»**, per a un acord que no hi és; queda a
-    la barra.
+    acords, i els altres, més apagats. La fila dels menors està plegada de
+    sèrie i el botó «Menors» la desplega (cada dispositiu ho recorda); plegada,
+    els menors que fa servir la cançó surten a la fila de sota. En aquesta fila
+    hi ha també la resta d'acords de la cançó (setenes, sostinguts…) i
+    **«Altre»**, per a un acord que no hi és; queda a la barra.
   - **«N»**: tocar una lletra posa en negreta la seva síl·laba (la síl·laba
     forta); tocar una lletra que ja és negreta la treu de tot aquell tros. La
     síl·laba l'endevina `sillabes` (`js/acords.js`), amb les regles comunes
@@ -53,7 +55,7 @@ Sense cap eina triada, tocar la lletra només avisa que cal triar-ne una.
   a mà.
 - Els acords del to de la cançó en lloc dels catorze bàsics: ocupen menys al
   mòbil, però canvien de lloc d'una cançó a l'altra. Juanjo va triar els
-  catorze fixos.
+  catorze fixos, amb els menors plegats de sèrie al mòbil i a l'ordinador.
 
 - La finestra per a cada síl·laba (la primera versió): massa passos.
 - Arrossegar sense mantenir premut al mòbil: impediria desplaçar la pàgina
@@ -85,8 +87,8 @@ estrofa deixa una línia en blanc, perquè no s'ajuntin.
 
 ## Riscos i limitacions
 
-- Al mòbil la barra, que queda fixa a dalt, ocupa unes cinc files i tapa
-  prop d'un terç de la pantalla.
+- Al mòbil la barra queda fixa a dalt i ocupa unes tres files (quatre amb els
+  menors desplegats): es veu menys lletra alhora.
 - Arrossegar amb el dit no s'ha pogut simular a Firefox ni a Safari de mòbil:
   cal provar-ho en un mòbil de veritat.
 - Les síl·labes es parteixen amb regles generals: hi pot haver casos dubtosos

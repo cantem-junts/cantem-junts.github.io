@@ -951,13 +951,19 @@ async function editorCanco(slug) {
   const pintaBarra = () => {
     // Les set notes, majors i menors, sempre a mà; les que ja fa servir la
     // cançó, amb el color dels acords. Després, la resta d'acords de la cançó.
+    // Els menors es pleguen (es recorda a cada dispositiu); plegats, els que
+    // fa servir la cançó o el que està triat passen a la fila de sota.
     const { majors, menors, altres } = acordsBasics($text.value);
-    const basics = new Set([...majors, ...menors].map((x) => x.text));
-    const acords = [...new Set([...altres, ...extres])].filter((a) => !basics.has(a));
+    const menorsVisibles = pref.get('menors', '0') === '1';
+    const fixos = menorsVisibles ? [...majors, ...menors] : majors;
+    const basics = new Set(fixos.map((x) => x.text));
+    const menorsALaVista = menorsVisibles ? [] : menors.filter((x) => x.usat || x.text === eina?.acord).map((x) => x.text);
+    const acords = [...new Set([...menorsALaVista, ...altres, ...extres])].filter((a) => !basics.has(a));
     const xip = (a, usat = true) => `<button class="boto xip${usat ? '' : ' xip-nou'}" data-pinzell="${esc(a)}" aria-pressed="${eina?.acord === a}" title="${t('Posa {0} on toquis', esc(a))}">${esc(a)}</button>`;
     $barra.innerHTML = `
-      <div class="xips-basics">${[...majors, ...menors].map((x) => xip(x.text, x.usat)).join('')}</div>
+      <div class="xips-basics">${fixos.map((x) => xip(x.text, x.usat)).join('')}</div>
       <div class="xips">${acords.map((a) => xip(a)).join('')}
+        <button class="boto" data-menors aria-expanded="${menorsVisibles}" title="${menorsVisibles ? t('Amaga la fila dels acords menors') : t('Mostra la fila dels acords menors')}">${t('Menors')}<svg><use href="#i-${menorsVisibles ? 'up' : 'down'}"/></svg></button>
         <button class="boto" data-altre title="${t('Un acord que no és a la barra')}"><svg><use href="#i-plus"/></svg>${t('Altre')}</button></div>
       <div class="eines-marca">
         <button class="boto boto-negreta" data-marca="negreta" aria-pressed="${!!eina?.negreta}" aria-label="${t('Negreta')}" title="${t('Negreta: toca una síl·laba per posar-la o treure-la en negreta (la síl·laba forta)')}">${t('N')}</button>
@@ -998,6 +1004,7 @@ async function editorCanco(slug) {
     if (!b) return;
     if (b.dataset.pinzell) eina = eina?.acord === b.dataset.pinzell ? null : { acord: b.dataset.pinzell };
     else if ('goma' in b.dataset) eina = eina?.goma ? null : { goma: true };
+    else if ('menors' in b.dataset) pref.set('menors', pref.get('menors', '0') === '1' ? null : '1');
     else if (b.dataset.marca) eina = eina?.[b.dataset.marca] ? null : { [b.dataset.marca]: true };
     else if ('desfes' in b.dataset) {
       if (!historial.length) return;

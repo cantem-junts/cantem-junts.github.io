@@ -12,13 +12,21 @@ module.exports = async (page, info) => {
   const inicial = await text();
   if (await page.locator('.eines-text').count()) falla('encara hi ha botons a l’esquerra');
   // Les catorze bàsiques a la barra; posar-ne una que la cançó no fa servir.
-  if ((await page.locator('.xips-basics .xip').count()) !== 14) falla('no hi ha les 14 bàsiques');
+  // De sèrie, només els majors; el menor que fa servir la cançó («la»), a sota.
+  if ((await page.locator('.xips-basics .xip').count()) !== 7) falla('de sèrie hi hauria d’haver 7 bàsiques');
+  if (!(await page.locator('.xips [data-pinzell="la"]').count())) falla('plegats, no es veu el «la» que fa servir la cançó');
+  await page.click('[data-menors]');
+  if ((await page.locator('.xips-basics .xip').count()) !== 14) falla('desplegats no hi ha les 14 bàsiques');
+  if (await page.locator('.xips [data-pinzell="la"]').count()) falla('desplegats, el «la» surt dues vegades');
   await page.click('.xips-basics [data-pinzell="mi"]');
   await page.locator('#ed-vista [data-num="0"] .c[data-i="0"]').click();
   if (!(await text()).startsWith('[mi]Enmig')) falla('no ha posat «mi»: ' + (await text()).split('\n')[0]);
   if (await page.locator('.xips-basics [data-pinzell="mi"]').evaluate((b) => b.classList.contains('xip-nou'))) falla('«mi» encara surt com a no usat');
   await page.click('[data-desfes]');
   if ((await text()) !== inicial) falla('el desfés no ha tornat el SOL');
+  // Es tornen a plegar.
+  await page.click('[data-menors]');
+  if ((await page.locator('.xips-basics .xip').count()) !== 7) falla('no s’han tornat a plegar');
   // Goma sobre un acord que té negreta al davant: «RE» damunt de «goig».
   await page.click('[data-goma]');
   await page.locator('#ed-vista [data-num="0"] .a[data-i="19"]').click();
