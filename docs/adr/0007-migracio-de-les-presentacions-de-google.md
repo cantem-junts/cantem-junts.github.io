@@ -38,6 +38,23 @@ dibuixa les lletres. `scripts/migracio/convertir.py`:
    «Buscador de oro», «Déu té nom», «El vaixell», «Si creiem que és vivent»,
    «Glòria a Vós» i «Escolta-ho en el vent».
 
+6. Les síl·labes en negreta dins d'una línia (moltes presentacions hi marquen
+   la síl·laba forta del ritme: «Enmig del **món** quin **goig** sen**tir**»)
+   es guarden amb la marca de ChordPro `<b>…</b>`, que la web pinta en
+   negreta. Es dedueixen del gruix del traç de cada lletra: l'àrea dels seus
+   contorns dividida pel mig perímetre, que en una lletra de pal sec és
+   gairebé igual a totes les lletres i creix amb la negreta. Cada lletra es
+   compara amb la mitjana de la seva fila (així una línia sencera en negreta,
+   que ja és tornada, no hi surt), i va en negreta per sobre d'1,22. Els
+   traços es reparteixen entre les lletres per la posició que dona la
+   tipografia, ajustant cada paraula al seu grup de traços. Després: una
+   lletra sense mesura o una mica per sota al costat d'una negreta també hi va;
+   la «f» de les lligadures «fi» i «fl» segueix la lletra següent; el punt
+   volat i l'apòstrof segueixen les lletres del costat; una lletra sola dins
+   una paraula no compta; els acords escrits dins la lletra no es marquen; i
+   si a tota la cançó només surt una marca, es treu, perquè qui marcava les
+   síl·labes fortes ho feia a tota la cançó.
+
 `scripts/migracio/lot.py` ho fa per a totes i hi afegeix les etiquetes
 (Nadal, Maria, Pasqua) que tenien al TiddlyWiki.
 
@@ -56,7 +73,16 @@ la imatge. On la imatge subratlla o posa en negreta la síl·laba de l'acord, ma
 això. Les que eren un duplicat d'una altra ja passada (la mateixa cançó en un
 altre to, o la mateixa en imatge i en text) no es passen: la web ja canvia de to.
 
+A l'editor, el botó «N» de la pestanya de la lletra posa o treu la negreta
+de les síl·labes triades.
+
 ## Alternatives descartades
+
+- Per a la negreta de les síl·labes, comparar la tinta de cada lletra amb la
+  mateixa lletra a la resta de la cançó: quan una lletra surt quasi sempre en
+  negreta (la «y» de «Se**nyor**»), la referència queda malament, i els
+  errors en repartir els traços entre dues lletres veïnes donen falsos
+  positius sistemàtics en algunes parelles («es», «as»).
 
 - Convertir el text amb els espais com si fos d'amplada fixa: els acords queden
   desplaçats, com ja passava a les cançons de text de la web antiga.
@@ -100,11 +126,25 @@ l'acord hi queda entremig.
 
 - Les síl·labes són aproximades; un acord que a la diapositiva queda entre dues
   síl·labes pot anar a la del costat. Es corregeix a l'editor.
+- Negreta de les síl·labes: es perd la d'una sola lletra («**a**man»,
+  «**A**ra»), i on la línia s'aparella malament amb les files de la
+  diapositiva pot quedar desplaçada una lletra. Es corregeix a l'editor amb
+  el botó «N».
 - Formes d'acord que la web no entén i cal revisar: `LA-7`, `SOL-7`, `f#m`,
   `(RE- SOL- RE)`, `LA7-`. A «Bona Mare», el `SOL4/5` de l'original s'ha escrit
   `SOL4`, perquè la web no l'entén.
 
 ## Validació
+
+Negreta de les síl·labes: 14 cançons en tenen. Comparades a la vista amb les
+seves diapositives «Aclamem el Senyor», «Dios está aquí», «Santa Nit», «Tu
+m'has seduït, Senyor», «Escolta-ho en el vent», «Quan somrius», «Tasteu i
+veureu» i «You raise me up»: les síl·labes marcades coincideixen, llevat de les
+d'una sola lletra. «Ave Maria (Quantes coses a la vida)», «El vaixell» i «Dame
+un nuevo corazón», sense síl·labes en negreta, no en surt cap. Tret de les
+marques `<b>`, la regeneració de tot el cançoner dona els mateixos fitxers
+(només «Aclamem» canvia, perquè ara «(x2)» no impedeix reconèixer la tornada
+en majúscules).
 
 `volcar.cjs` i `convertir.py` sobre «Aixeca els ulls» des del repositori donen
 el mateix fitxer que hi ha a `cancons/`.

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   llegeixAcord, esEtiquetaDAcords, transposaEtiqueta, acordsASobreAChordPro,
-  llegeixChordPro, posaAcord, lletraNeta, toDeLaCanco, nomDelTo, usaBemolls, acordsDeLaCanco,
+  llegeixChordPro, posaAcord, lletraNeta, toDeLaCanco, nomDelTo, usaBemolls, acordsDeLaCanco, canviaNegreta,
 } from '../js/acords.js';
 
 test('reconeix els acords tal com s’escriuen al cançoner', () => {
@@ -112,4 +112,38 @@ test('posa, canvia i treu acords', () => {
 test('lletra neta per cercar i acords de la cançó', () => {
   assert.equal(lletraNeta('{title: X}\n[DO]Si cer[mi m]ques\n{c: nota}'), 'Si cerques');
   assert.deepEqual(acordsDeLaCanco('[DO]a [mi m]b [la-FA]c [DO]d'), ['DO', 'mi m', 'la', 'FA']);
+});
+
+test('negreta dins la línia: no és text i pot travessar acords', () => {
+  const c = llegeixChordPro('Enmig del [DO]<b>món</b> quin <b>go[RE]ig</b> sen<b>tir</b>');
+  const segs = c.linies[0].segments;
+  assert.equal(segs.map((s) => s.text).join(''), 'Enmig del món quin goig sentir');
+  assert.deepEqual(segs.map((s) => [s.acord, s.text, s.negreta]), [
+    [null, 'Enmig del ', false], ['DO', 'món', true], [null, ' quin ', false],
+    [null, 'go', true], ['RE', 'ig', true], [null, ' sen', false], [null, 'tir', true],
+  ]);
+  assert.equal(lletraNeta('a<b>rri</b>[SOL]ba'), 'arriba');
+});
+
+test('les marques de negreta no compten en posar acords', () => {
+  assert.equal(posaAcord('Enmig del <b>món</b>', 10, 'DO'), 'Enmig del <b>[DO]món</b>');
+  assert.equal(posaAcord('Enmig del [DO]<b>món</b>', 10, 'RE'), 'Enmig del [RE]<b>món</b>');
+  assert.equal(posaAcord('a<b>rri</b>ba', 4, 'SOL'), 'a<b>rri</b>[SOL]ba');
+  assert.equal(posaAcord('a<b>rri</b>ba', 6, 'SOL'), 'a<b>rri</b>ba [SOL]');
+});
+
+test('el botó de negreta la posa i la treu de la selecció', () => {
+  const l = 'Enmig del [DO]món quin goig';
+  // «món» (posicions 14 a 17)
+  assert.equal(canviaNegreta(l, 14, 17), 'Enmig del [DO]<b>món</b> quin goig');
+  assert.equal(canviaNegreta('Enmig del [DO]<b>món</b> quin goig', 18, 20), 'Enmig del [DO]<b>m</b>ón quin goig');
+  // Tot triat ja era negreta: es treu.
+  const b = 'Enmig del [DO]<b>món</b> quin goig';
+  assert.equal(canviaNegreta(b, 10, b.indexOf(' quin')), l);
+  // Una selecció que en toca una part la completa, també a través d'un acord.
+  assert.equal(canviaNegreta('<b>go</b>[RE]ig', 0, 15), '<b>go[RE]ig</b>');
+  // Dues línies, sense tocar les directives.
+  assert.equal(canviaNegreta('{soc}\nla\nsi\n{eoc}', 0, 11), '{soc}\n<b>la</b>\n<b>si</b>\n{eoc}');
+  // Només espais: res.
+  assert.equal(canviaNegreta('a  b', 1, 3), 'a  b');
 });

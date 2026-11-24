@@ -185,24 +185,37 @@ const ALIES = {
   c: 'comment', ci: 'comment_italic', cb: 'comment_box',
 };
 
-// Parteix una línia «[DO]Si cer[mi m]ques» en segments {acord, text, inici}.
+// Parteix una línia «[DO]Si cer[mi m]ques» en segments {acord, text, inici, negreta}.
 // «inici» és la posició del text del segment dins la línia original.
+// «<b>…</b>» marca la negreta (la síl·laba forta, com a les presentacions
+// antigues): no és text, i un canvi de negreta comença un segment nou sense
+// acord. La negreta pot travessar acords: «<b>mo[DO]ment</b>».
 export function segmentsDeLinia(linia) {
   const segments = [];
-  const re = /\[([^\]]*)\]/g;
+  const re = /\[([^\]]*)\]|<(\/?)b>/gi;
   let ultim = 0;
   let acord = null;
   let inici = 0;
+  let negreta = false;
   let m;
   while ((m = re.exec(linia))) {
     const text = linia.slice(ultim, m.index);
-    if (text || acord !== null) segments.push({ acord, text, inici });
-    acord = m[1];
+    if (m[1] !== undefined) {
+      if (text || acord !== null) segments.push({ acord, text, inici, negreta });
+      acord = m[1];
+    } else {
+      // Un acord just abans de la marca va amb el text que la segueix.
+      if (text) {
+        segments.push({ acord, text, inici, negreta });
+        acord = null;
+      }
+      negreta = !m[2];
+    }
     ultim = re.lastIndex;
     inici = ultim;
   }
   const text = linia.slice(ultim);
-  if (text || acord !== null) segments.push({ acord, text, inici });
+  if (text || acord !== null) segments.push({ acord, text, inici, negreta });
   return segments;
 }
 
@@ -330,6 +343,12 @@ export function acordsASobreAChordPro(text) {
 export function posicioFont(linia, idx) {
   let comptador = 0;
   for (let i = 0; i <= linia.length; i++) {
+    // Les marques de negreta no són lletres.
+    const marca = /^<\/?b>/i.exec(linia.slice(i, i + 4));
+    if (marca) {
+      i += marca[0].length - 1;
+      continue;
+    }
     if (linia[i] === '[') {
       const tanca = linia.indexOf(']', i);
       if (tanca > -1) {
@@ -352,6 +371,75 @@ export function posaAcord(linia, idx, acord) {
   // Si la lletra queda més enllà del final, l'acord va al final.
   if (pos >= linia.length) return linia + (acord ? (linia && !/\s$/.test(linia) ? ' ' : '') + nou : '');
   return linia.slice(0, pos) + nou + linia.slice(pos);
+}
+
+// Posa o treu la negreta dels caràcters del text entre «ini» i «fi» (posicions
+// del text sencer, com la selecció d'un textarea). Si tot el que hi ha triat ja
+// era negreta, la treu; si no, la posa. Les marques es tornen a escriure
+// senceres a cada línia tocada, perquè quedin ben aparellades.
+export function canviaNegreta(text, ini, fi) {
+  const linies = text.split('\n');
+  // Primer: estat de cada lletra triada, per saber si es posa o es treu.
+  const tocades = [];
+  let pos = 0;
+  for (const [n, l] of linies.entries()) {
+    const ini0 = pos;
+    pos += l.length + 1;
+    if (pos <= ini || ini0 >= fi || DIRECTIVA.test(l)) continue;
+    tocades.push({ n, cars: caractersAmbNegreta(l), desde: ini - ini0, fins: fi - ini0 });
+  }
+  const triats = tocades.flatMap(({ cars, desde, fins }) => cars.filter((c) => c.text !== undefined && c.pos >= desde && c.pos < fins && /\S/.test(c.text)));
+  if (!triats.length) return text;
+  const posa = !triats.every((c) => c.negreta);
+  for (const { n, cars, desde, fins } of tocades) {
+    for (const c of cars) if (c.text !== undefined && c.pos >= desde && c.pos < fins) c.negreta = posa;
+    linies[n] = escriuAmbNegreta(cars);
+  }
+  return linies.join('\n');
+}
+
+// Una línia en peces: {acord} o {text: un caràcter, negreta, pos}.
+function caractersAmbNegreta(linia) {
+  const out = [];
+  let negreta = false;
+  for (let i = 0; i < linia.length; i++) {
+    const marca = /^<(\/?)b>/i.exec(linia.slice(i, i + 4));
+    if (marca) { negreta = !marca[1]; i += marca[0].length - 1; continue; }
+    if (linia[i] === '[') {
+      const tanca = linia.indexOf(']', i);
+      if (tanca > -1) { out.push({ acord: linia.slice(i, tanca + 1) }); i = tanca; continue; }
+    }
+    out.push({ text: linia[i], negreta, pos: i });
+  }
+  return out;
+}
+
+// Torna a escriure la línia amb les marques justes: la negreta s'obre davant
+// de la primera lletra, es tanca després de l'última i no deixa espais ni
+// acords sobrers a dins.
+function escriuAmbNegreta(cars) {
+  const lletres = cars.filter((c) => c.text !== undefined);
+  const seguentEsNegreta = (k) => {
+    for (let j = k; j < cars.length; j++) {
+      const c = cars[j];
+      if (c.text !== undefined && /\S/.test(c.text)) return c.negreta;
+    }
+    return false;
+  };
+  let out = '';
+  let dins = false;
+  cars.forEach((c, k) => {
+    if (c.text === undefined || /\s/.test(c.text)) {
+      if (dins && !seguentEsNegreta(k + 1)) { out += '</b>'; dins = false; }
+      out += c.text === undefined ? c.acord : c.text;
+      return;
+    }
+    if (c.negreta && !dins) { out += '<b>'; dins = true; }
+    if (!c.negreta && dins) { out += '</b>'; dins = false; }
+    out += c.text;
+  });
+  if (dins) out += '</b>';
+  return lletres.length ? out : cars.map((c) => c.acord ?? c.text).join('');
 }
 
 export function acordsDeLaCanco(font) {

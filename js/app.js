@@ -4,7 +4,7 @@
 
 import {
   llegeixChordPro, transposaEtiqueta, toDeLaCanco, usaBemolls, nomDelTo, lletraNeta,
-  acordsASobreAChordPro, tensAcordsASobre, posaAcord, acordsDeLaCanco, LLATI,
+  acordsASobreAChordPro, tensAcordsASobre, posaAcord, acordsDeLaCanco, canviaNegreta, LLATI,
 } from './acords.js';
 import { esLocal, potEditar, desaFitxer, esborraFitxer, usuari, iniciaSessio, completaRetorn, tancaSessio } from './desament.js';
 import { t, llengua, canviaLlengua, altraLlengua, traduixEstatics } from './llengua.js';
@@ -142,21 +142,22 @@ function paraules(segments) {
   const nova = () => { actual = { tipus: 'paraula', frags: [] }; out.push(actual); return actual; };
   for (const s of segments) {
     let acord = s.acord;
+    const negreta = !!s.negreta;
     if (s.text === '') {
-      (actual || nova()).frags.push({ acord, text: '', ini: pos });
+      (actual || nova()).frags.push({ acord, text: '', ini: pos, negreta });
       continue;
     }
     for (const p of s.text.split(/(\s+)/)) {
       if (p === '') continue;
       if (/^\s+$/.test(p)) {
         if (acord !== null && acord !== undefined) {
-          (actual || nova()).frags.push({ acord, text: '', ini: pos });
+          (actual || nova()).frags.push({ acord, text: '', ini: pos, negreta });
           acord = null;
         }
         out.push({ tipus: 'espai', text: p, ini: pos });
         actual = null;
       } else {
-        (actual || nova()).frags.push({ acord, text: p, ini: pos });
+        (actual || nova()).frags.push({ acord, text: p, ini: pos, negreta });
         acord = null;
       }
       pos += p.length;
@@ -174,11 +175,12 @@ function htmlLinia(linia, salt, bemolls, mode) {
   const teAcords = linia.segments.some((s) => s.acord !== null);
   const { parts, llargada } = paraules(linia.segments);
   const nomesAcords = teAcords && !linia.segments.some((s) => s.text.trim());
-  const lletres = (text, ini) => {
+  const lletres = (text, ini, negreta) => {
     if (!text) return '\u200b';
-    return mode === 'edicio'
+    const html = mode === 'edicio'
       ? [...text].map((ch, k) => `<span class="c" data-i="${ini + k}">${esc(ch)}</span>`).join('')
       : esc(text);
+    return negreta ? `<b>${html}</b>` : html;
   };
   let html = '';
   for (const p of parts) {
@@ -191,8 +193,8 @@ function htmlLinia(linia, salt, bemolls, mode) {
       const a = f.acord !== null && f.acord !== undefined ? esc(etiquetaAcord(f.acord, salt, bemolls)) : '';
       const dataA = mode === 'edicio' && a ? ` data-i="${f.ini}"` : '';
       html += teAcords
-        ? `<span class="f"><span class="a"${dataA}>${a}</span><span class="t">${lletres(f.text, f.ini)}</span></span>`
-        : `<span class="t">${lletres(f.text, f.ini)}</span>`;
+        ? `<span class="f"><span class="a"${dataA}>${a}</span><span class="t">${lletres(f.text, f.ini, f.negreta)}</span></span>`
+        : `<span class="t">${lletres(f.text, f.ini, f.negreta)}</span>`;
     }
     html += '</span>';
   }
@@ -885,6 +887,7 @@ async function editorCanco(slug) {
           <div class="eines-text">
             <button class="boto" data-eina="tornada" title="${t('Marca les línies triades com a tornada')}">${t('Tornada')}</button>
             <button class="boto" data-eina="nota" title="${t('Afegeix una nota, com «Dues vegades»')}">${t('Nota')}</button>
+            <button class="boto boto-negreta" data-eina="negreta" title="${t('Posa o treu la negreta de les síl·labes triades (la síl·laba forta)')}" aria-label="${t('Negreta')}">${t('N')}</button>
           </div>
           <textarea id="ed-text" spellcheck="false">${esc(cos)}</textarea>
         </div>
@@ -942,7 +945,16 @@ async function editorCanco(slug) {
     const v = $text.value;
     let ini = $text.selectionStart;
     let fi = $text.selectionEnd;
-    if (b.dataset.eina === 'tornada') {
+    if (b.dataset.eina === 'negreta') {
+      if (ini === fi) {
+        avis(t('Selecciona primer les síl·labes que vols en negreta.'), 3500);
+        return;
+      }
+      const nou = canviaNegreta(v, ini, fi);
+      // La selecció es manté sobre el mateix tros, amb les marques noves.
+      $text.value = nou;
+      $text.setSelectionRange(ini, fi + nou.length - v.length);
+    } else if (b.dataset.eina === 'tornada') {
       ini = v.lastIndexOf('\n', ini - 1) + 1;
       const f = v.indexOf('\n', Math.max(fi - 1, ini));
       fi = f === -1 ? v.length : f;

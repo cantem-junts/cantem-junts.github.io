@@ -94,6 +94,10 @@ const ES = {
   "Escriu o enganxa la lletra. Si l'enganxes amb els acords a la línia de sobre, es col·loquen sols damunt de cada síl·laba. Una línia en blanc separa les estrofes.":
     'Escribe o pega la letra. Si la pegas con los acordes en la línea de encima, se colocan solos sobre cada sílaba. Una línea en blanco separa las estrofas.',
   'Tornada': 'Estribillo',
+  'Negreta': 'Negrita',
+  'N': 'N',
+  'Posa o treu la negreta de les síl·labes triades (la síl·laba forta)': 'Pone o quita la negrita de las sílabas elegidas (la sílaba fuerte)',
+  'Selecciona primer les síl·labes que vols en negreta.': 'Selecciona primero las sílabas que quieres en negrita.',
   'Marca les línies triades com a tornada': 'Marca las líneas elegidas como estribillo',
   'Afegeix una nota, com «Dues vegades»': 'Añade una nota, como «Dos veces»',
   'Dues vegades': 'Dos veces',

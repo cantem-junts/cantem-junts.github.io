@@ -33,6 +33,9 @@ tradueixen.
 - **Els acords es respecten tal com s'escriuen**: majúscula, major; minúscula,
   menor (`lam`, `fa#`, `mi m`). Sense canvi de to i en notació llatina es
   mostren tal com són al fitxer. Vegeu l'[ADR 4](docs/adr/0004-notacio-dels-acords.md).
+- **La negreta dins la lletra** (la síl·laba forta del ritme) s'escriu amb la
+  marca de ChordPro `<b>…</b>`, que pot travessar acords. No és text: el
+  lector de línies, `posicioFont` i la cerca la salten. A l'editor, el botó «N».
 - **Cada text de la interfície passa per `t()`**, escrit en català, i té la
   seva traducció al diccionari `ES` de `js/llengua.js` (amb `{0}` per a les
   dades); els textos fixos d'`index.html` porten `data-t`, `data-t-title` o

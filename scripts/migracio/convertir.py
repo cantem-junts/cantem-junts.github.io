@@ -27,7 +27,11 @@ def contorns(d):
     def tanca():
         if pts:
             xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
-            out.append((min(xs), min(ys), max(xs), max(ys), len(pts)))
+            # Àrea amb signe (shoelace): els forats van en sentit contrari i resten.
+            n = len(pts)
+            area = sum(pts[k][0] * pts[(k + 1) % n][1] - pts[(k + 1) % n][0] * pts[k][1] for k in range(n)) / 2
+            perim = sum(((pts[(k + 1) % n][0] - pts[k][0]) ** 2 + (pts[(k + 1) % n][1] - pts[k][1]) ** 2) ** .5 for k in range(n))
+            out.append((min(xs), min(ys), max(xs), max(ys), n, area, perim))
     nargs = {'m': 2, 'l': 2, 'q': 4, 'c': 6, 'h': 1, 'v': 1, 's': 4, 't': 2, 'z': 0}
     while i < len(toks):
         t = toks[i]
@@ -229,6 +233,162 @@ def gruix(cs):
             if b is not a and b[0] > a[0] and b[2] < a[2] and b[1] > a[1] and b[3] < a[3]:
                 rs.append((b[2] - b[0]) / wa)
     return statistics.median(rs) if len(rs) >= 3 else None
+
+
+# ---------- lletres en negreta dins la línia ----------
+# A les presentacions, sovint es posa en negreta la síl·laba forta del ritme
+# («Enmig del **món** quin **goig**»). Es dedueix del gruix del traç de cada
+# lletra: àrea / mig perímetre dels seus contorns, que en una lletra de pal sec
+# és gairebé igual a totes les lletres i creix amb la negreta. Es compara amb
+# la mitjana de la fila, de manera que una línia sencera en negreta (la
+# tornada, que ja es marca a part) no hi surt.
+LLINDAR_NEGRETA = 1.22
+NOTES_PARAULA = {'do', 're', 'mi', 'fa', 'sol', 'la', 'si'}
+
+
+def xs_lletres(text, fila, mask):
+    """(x esquerra, x dreta) de cada caràcter de text dins la fila: amplades de
+    Liberation Sans (negreta on diu mask) i cada paraula ajustada al seu grup
+    de traços, perquè la desviació no s'acumuli al llarg de la línia."""
+    w = [(F_BOLD if m else F_REG).getlength(ch) for ch, m in zip(text, mask)]
+    esc = (fila['x1'] - fila['x0']) / (sum(w) or 1)
+    xs = []; x = fila['x0']
+    for wi in w:
+        xs.append((x, x + wi * esc)); x += wi * esc
+    paraules = [(m.start(), m.end()) for m in re.finditer(r'\S+', text)]
+    cs = sorted(fila['cs'])
+    n = len(paraules)
+    if n < 2 or len(cs) < n:
+        return xs
+    forats = []; dreta = cs[0][2]
+    for k in range(1, len(cs)):
+        forats.append((cs[k][0] - dreta, k)); dreta = max(dreta, cs[k][2])
+    ordenats = sorted(forats, reverse=True)
+    # Els n-1 forats més grans han de ser els espais: clarament més grans que
+    # el següent, o almenys de mig espai.
+    if ordenats[n - 2][0] < 1.5 * max(ordenats[n - 1][0], 0.01) and ordenats[n - 2][0] < 0.5 * esc * F_REG.getlength(' '):
+        return xs
+    talls = sorted(k for _, k in ordenats[:n - 1])
+    out = list(xs); ant = 0
+    for (a, b), t in zip(paraules, talls + [len(cs)]):
+        g = cs[ant:t]; ant = t
+        gx0 = min(k[0] for k in g); gx1 = max(k[2] for k in g)
+        w0, w1 = xs[a][0], xs[b - 1][1]
+        e = (gx1 - gx0) / max(w1 - w0, 0.01)
+        for i in range(a, b):
+            out[i] = (gx0 + (xs[i][0] - w0) * e, gx0 + (xs[i][1] - w0) * e)
+    return out
+
+
+def gruix_lletres(text, fila, mask):
+    """Gruix del traç de cada lletra respecte a la mitjana de la fila (None
+    si no és una lletra o no té traços)."""
+    if not text.strip():
+        return [None] * len(text)
+    xs = xs_lletres(text, fila, mask)
+    A = [0.0] * len(text); P = [0.0] * len(text)
+    for k in fila['cs']:
+        mx = (k[0] + k[2]) / 2
+        i = min(range(len(text)), key=lambda i: 0 if xs[i][0] <= mx < xs[i][1] else min(abs(mx - xs[i][0]), abs(mx - xs[i][1])))
+        A[i] += k[5]; P[i] += k[6]
+    g = [abs(a) / (p / 2) if p > 0 and ch.isalpha() else None for ch, a, p in zip(text, A, P)]
+    vals = [x for x in g if x]
+    if not vals:
+        return [None] * len(text)
+    m = statistics.median(vals)
+    return [x / m if x else None for x in g]
+
+
+def decideix_negreta(text, q):
+    """Quines lletres van en negreta, a partir del gruix relatiu q."""
+    n = len(text)
+    # Una línia d'acords que s'ha llegit com a lletra («MI SI7MI7 LA») no en té.
+    paraules = text.split()
+    if paraules and sum(es_fitxa_acord(p) for p in paraules) * 2 >= len(paraules):
+        return [False] * n
+    b = [bool(x and x > LLINDAR_NEGRETA) for x in q]
+    for i in range(n):
+        if b[i] or not text[i].isalpha():
+            continue
+        veins = [j for j in (i - 1, i + 1) if 0 <= j < n and text[j].isalpha()]
+        # Traços que s'ha quedat la lletra del costat: una molt baixa i l'altra molt alta.
+        if q[i] is not None and q[i] < 0.6 and any(q[j] and q[j] > 1.9 for j in veins):
+            b[i] = True
+        # Lletra sense mesura, o una mica per sota, al costat d'una negreta.
+        elif (q[i] is None or q[i] > 1.12) and any(b[j] for j in veins):
+            b[i] = True
+        # Lligadures «fi» i «fl»: el traç de la «f» va amb la lletra següent.
+        elif text[i] == 'f' and i + 1 < n and text[i + 1] in 'il' and b[i + 1]:
+            b[i] = True
+    majuscules = text == text.upper()
+    for m in re.finditer(r"[\w·'’]+", text):
+        w = range(m.start(), m.end())
+        p = m.group()
+        seguent = text[m.end():m.end() + 1]
+        # Els acords escrits dins la lletra («RE SOL RE7», «mim», «SOLRE+7») no
+        # es marquen; «la», «si» o «sol» com a paraula, sí.
+        acord = es_acord(p) or (seguent and seguent in '+/#' and p.isupper())
+        if acord and (p.lower() not in NOTES_PARAULA or (p.isupper() and not majuscules)):
+            for i in w:
+                b[i] = False
+            continue
+        # Una lletra sola dins d'una paraula més llarga és soroll.
+        if len(w) > 1:
+            for i in w:
+                if b[i] and not any(b[j] for j in (i - 1, i + 1) if j in w):
+                    b[i] = False
+    # El punt volat i l'apòstrof dins d'una paraula segueixen les lletres del costat.
+    for i in range(1, n - 1):
+        if text[i] in "·'’-" and b[i - 1] and b[i + 1]:
+            b[i] = True
+    return b
+
+
+def negreta_linia(text, fl):
+    """Màscara de negreta dels caràcters de text (línia de lletra que ocupa les
+    files fl). Si la línia es parteix en més d'una fila, cada tros a la seva."""
+    trossos = []; resta = text
+    for i, f in enumerate(fl):
+        if i == len(fl) - 1:
+            trossos.append((resta, f)); break
+        part = text_primera_fila(resta, f, fl[i + 1:])
+        trossos.append((part, f)); resta = resta[len(part):].strip()
+    marques = []
+    for tx, f in trossos:
+        mask = [False] * len(tx)
+        for _ in range(2):  # la segona volta mesura amb l'amplada de la negreta
+            mask = decideix_negreta(tx, gruix_lletres(tx, f, mask))
+        marques += [m for ch, m in zip(tx, mask) if not ch.isspace()]
+    return marques  # una per caràcter no blanc, en ordre
+
+
+def posa_negreta(linia, marques):
+    """Afegeix <b>…</b> a una línia ChordPro segons les marques (una per
+    caràcter no blanc de la lletra, sense comptar els acords)."""
+    out = ''; k = 0; dins = False; i = 0
+    while i < len(linia):
+        ch = linia[i]
+        if ch == '[':
+            fi = linia.find(']', i)
+            if fi > -1:
+                # La negreta es tanca abans de l'acord si la lletra següent no hi va.
+                if dins and not (k < len(marques) and marques[k]):
+                    out += '</b>'; dins = False
+                out += linia[i:fi + 1]; i = fi + 1; continue
+        if not ch.isspace():
+            m = k < len(marques) and marques[k]; k += 1
+            if m and not dins:
+                out += '<b>'; dins = True
+            elif not m and dins:
+                out += '</b>'; dins = False
+        elif dins:
+            # Un espai tanca la negreta si la lletra següent ja no hi va.
+            if not (k < len(marques) and marques[k]):
+                out += '</b>'; dins = False
+        out += ch; i += 1
+    if dins:
+        out += '</b>'
+    return out
 
 
 def grups_x(cs, n):
@@ -453,6 +613,8 @@ def converteix(slides, titol):
                 # lletra
                 lt = L['text'].strip()
                 marca = NEGRETA if (vi - 1) in negretes else ''
+                # Síl·labes en negreta dins la línia (no a les que ja ho són senceres).
+                marques = negreta_linia(lt, fl) if fl and not marca else []
                 if pendents and fl:
                     negreta = lt.isupper() and False
                     f0 = fl[0]
@@ -465,24 +627,34 @@ def converteix(slides, titol):
                     linia = col_loca(pendents, part.rstrip(), xs)
                     if resta:
                         linia = linia + ' ' + resta
-                    estrofa.append(marca + linia)
+                    estrofa.append(marca + posa_negreta(linia, marques))
                 elif pendents:
-                    estrofa.append(marca + ' '.join('[' + a + ']' for a, _ in pendents) + ' ' + lt)
+                    estrofa.append(marca + ' '.join('[' + a + ']' for a, _ in pendents) + ' ' + posa_negreta(lt, marques))
                 else:
-                    estrofa.append(marca + lt)
+                    estrofa.append(marca + posa_negreta(lt, marques))
                 pendents = None
             if pendents:
                 estrofa.append(' '.join('[' + a + ']' for a, _ in pendents))
             if estrofa:
                 blocs.append(estrofa)
+    # Qui marcava les síl·labes fortes ho feia a tota la cançó: una sola marca
+    # és soroll de la mesura.
+    if sum(l.count('<b>') for b in blocs for l in b) < 2:
+        blocs = [[re.sub(r'</?b>', '', l) for l in b] for b in blocs]
     return escriu(blocs, titol)
 
 
 def escriu(blocs, titol):
     """Estrofes (llistes de línies ChordPro) → text ChordPro, amb tornades i rètols."""
     out = ['{title: ' + titol + '}', '']
+
+    def net(l):
+        """Només el text de la lletra: sense acords, negretes ni marca interna."""
+        return re.sub(r'\[[^\]]*\]|</?b>', '', l).replace(NEGRETA, '').strip()
+
     def es_maj(l):
-        t = re.sub(r'\[[^\]]*\]', '', l).replace(NEGRETA, '').strip()
+        # Les indicacions de repetició, «(x2)» o «(bis)», no compten.
+        t = re.sub(r'\((?:x\s*\d+|\d+\s*x|bis)\)', '', net(l), flags=re.I).strip()
         return bool(t) and t == t.upper() and re.search(r'[A-ZÀ-Ú]{3}', t) is not None
 
     def destaca(l):
@@ -493,20 +665,18 @@ def escriu(blocs, titol):
         b = [re.sub(r'(?<=\S)  +', ' ', l).rstrip() for l in b]
         tros = [[b[0]]]
         for l in b[1:]:
-            if destaca(l) != destaca(tros[-1][-1]) and re.sub(r'\[[^\]]*\]', '', l).strip():
+            if destaca(l) != destaca(tros[-1][-1]) and net(l):
                 tros.append([l])
             else:
                 tros[-1].append(l)
         partits += tros
     blocs = partits
     for b in blocs:
-        lletres = [re.sub(r'\[[^\]]*\]', '', l) for l in b]
-        net = [re.sub(r'\[[^\]]*\]', '', l).strip() for l in b]
-        if len(b) == 1 and '[' not in b[0] and es_maj(b[0]) and len(net[0]) <= 40:
-            out.append('{comment: ' + net[0].replace(NEGRETA, '').capitalize() + '}')
+        if len(b) == 1 and '[' not in b[0] and es_maj(b[0]) and len(net(b[0])) <= 40:
+            out.append('{comment: ' + net(b[0]).capitalize() + '}')
             out.append('')
             continue
-        tornada = all(destaca(l) for l in b if re.sub(r'\[[^\]]*\]', '', l).strip())
+        tornada = all(destaca(l) for l in b if net(l))
         if tornada:
             out.append('{start_of_chorus}')
         out += [l.replace(NEGRETA, '') for l in b]
