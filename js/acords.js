@@ -442,6 +442,160 @@ function escriuAmbNegreta(cars) {
   return lletres.length ? out : cars.map((c) => c.acord ?? c.text).join('');
 }
 
+/* --- Síl·labes, per posar la negreta d'un toc --- */
+
+const FORTES = 'aeoàèéòóáíúï';
+const FEBLES = 'iuy';
+const esVocal = (ch) => FORTES.includes(ch) || FEBLES.includes(ch) || ch === 'ü';
+const GRUPS = /^[pbfgckdt][lr]$/;
+
+// Parteix una paraula en síl·labes, amb les regles comunes del català i el
+// castellà. Torna els límits [inici, fi) de cada una. No cal que sigui
+// perfecta: només serveix per saber quines lletres es posen en negreta.
+export function sillabes(paraula) {
+  const w = paraula.toLowerCase();
+  const n = w.length;
+  // Què és cada lletra: 'V' vocal forta, 'v' vocal feble, 'C' consonant.
+  const tipus = [];
+  for (let i = 0; i < n; i++) {
+    const ch = w[i];
+    const seg = w[i + 1] || '';
+    if (ch === 'u' && (w[i - 1] === 'q' || w[i - 1] === 'g') && 'eiéíè'.includes(seg)) tipus.push('C'); // «qu», «gu» muda
+    else if (ch === 'ü') tipus.push(w[i - 1] === 'q' || w[i - 1] === 'g' ? 'C' : 'v');
+    else if (ch === 'y') tipus.push(i > 0 && !esVocal(seg) && seg !== 'y' && tipus[i - 1] !== 'C' ? 'v' : (esVocal(seg) ? 'C' : (i > 0 ? 'v' : 'C')));
+    else if (FORTES.includes(ch)) tipus.push('V');
+    else if (FEBLES.includes(ch)) tipus.push('v');
+    else tipus.push('C');
+  }
+  // Una «i» o «u» entre dues vocals fortes fa de consonant: «noia», «creient».
+  for (let i = 1; i < n - 1; i++) if (tipus[i] === 'v' && tipus[i - 1] === 'V' && tipus[i + 1] === 'V') tipus[i] = 'C';
+  // Nuclis: vocals seguides, partides entre dues fortes o davant d'una «ï».
+  const nuclis = [];
+  for (let i = 0; i < n; i++) {
+    if (tipus[i] === 'C') continue;
+    const prev = nuclis[nuclis.length - 1];
+    const enganxat = prev && prev.fi === i;
+    const forta = (k) => tipus[k] === 'V';
+    if (enganxat && !(forta(i) && forta(i - 1)) && w[i] !== 'ï' && !/[íú]/.test(w[i] + w[i - 1])) prev.fi = i + 1;
+    else nuclis.push({ ini: i, fi: i + 1 });
+  }
+  if (nuclis.length < 2) return [[0, n]];
+  const talls = [];
+  for (let k = 1; k < nuclis.length; k++) {
+    const a = nuclis[k - 1].fi;
+    const b = nuclis[k].ini;
+    // Consonants entre els dos nuclis, amb els dígrafs com una sola peça.
+    const peces = [];
+    for (let i = a; i < b; i++) {
+      const dos = w.slice(i, i + 2);
+      if (w[i] === '·') { peces.push({ ini: i, fi: i + 1, punt: true }); continue; }
+      if (['ch', 'll', 'rr', 'ny', 'qu', 'gu', 'gü', 'qü'].includes(dos) && i + 1 < b + (dos[1] === 'u' || dos[1] === 'ü' ? 1 : 0)) { peces.push({ ini: i, fi: i + 2 }); i++; continue; }
+      peces.push({ ini: i, fi: i + 1 });
+    }
+    let tall;
+    const punt = peces.findIndex((p) => p.punt);
+    if (punt > -1) tall = peces[punt].fi;
+    else if (peces.length === 0) tall = b;
+    else if (peces.length === 1) tall = peces[0].ini;
+    else {
+      const [p, q] = peces.slice(-2);
+      const grup = w.slice(p.ini, p.fi) + w.slice(q.ini, q.fi);
+      tall = GRUPS.test(grup) ? p.ini : q.ini;
+    }
+    talls.push(tall);
+  }
+  const out = [];
+  let ini = 0;
+  for (const t of talls) { out.push([ini, t]); ini = t; }
+  out.push([ini, n]);
+  return out;
+}
+
+// Posa o treu la negreta de les lletres «a» a «b» (incloses) d'una línia. Les
+// posicions compten només el text, sense acords ni marques, com a la vista.
+export function canviaNegretaLletres(linia, a, b, posa = null) {
+  const cars = caractersAmbNegreta(linia);
+  const lletres = cars.filter((c) => c.text !== undefined);
+  const triats = lletres.slice(a, b + 1).filter((c) => /\S/.test(c.text));
+  if (!triats.length) return linia;
+  const valor = posa ?? !triats.every((c) => c.negreta);
+  for (const c of lletres.slice(a, b + 1)) c.negreta = valor;
+  return escriuAmbNegreta(cars);
+}
+
+// Un toc sobre la lletra «idx»: si ja és negreta, la treu de tot el tros en
+// negreta; si no, posa en negreta la síl·laba on és.
+export function canviaNegretaSillaba(linia, idx) {
+  const lletres = caractersAmbNegreta(linia).filter((c) => c.text !== undefined);
+  const esLletra = (k) => lletres[k] && /[\p{L}·]/u.test(lletres[k].text);
+  if (!esLletra(idx)) return linia;
+  if (lletres[idx].negreta) {
+    let a = idx;
+    let b = idx;
+    while (a > 0 && lletres[a - 1].negreta && /\S/.test(lletres[a - 1].text)) a--;
+    while (b < lletres.length - 1 && lletres[b + 1].negreta && /\S/.test(lletres[b + 1].text)) b++;
+    return canviaNegretaLletres(linia, a, b, false);
+  }
+  let a = idx;
+  let b = idx;
+  while (esLletra(a - 1)) a--;
+  while (esLletra(b + 1)) b++;
+  const paraula = lletres.slice(a, b + 1).map((c) => c.text).join('');
+  const [ini, fi] = sillabes(paraula).find(([i, f]) => idx - a >= i && idx - a < f);
+  return canviaNegretaLletres(linia, a + ini, a + fi - 1, true);
+}
+
+/* --- Tornades i notes --- */
+
+const esLliniaDeLletra = (l) => l !== undefined && l.trim() !== '' && !DIRECTIVA.test(l) && !/^\s*#/.test(l);
+const esDirectiva = (l, noms) => {
+  const d = l?.match(DIRECTIVA);
+  return !!d && noms.includes(ALIES[d[1].toLowerCase()] || d[1].toLowerCase());
+};
+
+// Converteix en tornada l'estrofa on hi ha la línia «num», o, si ja ho és,
+// la torna estrofa normal.
+export function canviaTornada(font, num) {
+  const ls = font.split('\n');
+  if (!esLliniaDeLletra(ls[num])) return font;
+  const seccio = llegeixChordPro(font).linies.find((l) => l.num === num)?.seccio;
+  if (seccio === 'chorus') {
+    let ini = num;
+    while (ini >= 0 && !esDirectiva(ls[ini], ['start_of_chorus'])) ini--;
+    let fi = num;
+    while (fi < ls.length && !esDirectiva(ls[fi], ['end_of_chorus'])) fi++;
+    // Si toca una altra estrofa, la directiva es torna una línia en blanc
+    // perquè no s'ajuntin.
+    if (fi < ls.length) ls.splice(fi, 1, ...(esLliniaDeLletra(ls[fi + 1]) ? [''] : []));
+    if (ini >= 0) ls.splice(ini, 1, ...(esLliniaDeLletra(ls[ini - 1]) ? [''] : []));
+    return ls.join('\n');
+  }
+  let ini = num;
+  while (esLliniaDeLletra(ls[ini - 1])) ini--;
+  let fi = num;
+  while (esLliniaDeLletra(ls[fi + 1])) fi++;
+  ls.splice(fi + 1, 0, '{end_of_chorus}');
+  ls.splice(ini, 0, '{start_of_chorus}');
+  return ls.join('\n');
+}
+
+// Posa una nota damunt la línia «num», o en canvia el text si «num» ja és una nota.
+export function posaNota(font, num, text) {
+  const ls = font.split('\n');
+  if (num < 0 || num >= ls.length) return font;
+  if (esDirectiva(ls[num], ['comment', 'comment_italic', 'comment_box'])) ls[num] = `{comment: ${text}}`;
+  else ls.splice(num, 0, `{comment: ${text}}`);
+  return ls.join('\n');
+}
+
+// Treu la nota de la línia «num».
+export function treuNota(font, num) {
+  const ls = font.split('\n');
+  if (!esDirectiva(ls[num], ['comment', 'comment_italic', 'comment_box'])) return font;
+  ls.splice(num, 1);
+  return ls.join('\n');
+}
+
 export function acordsDeLaCanco(font) {
   const vistos = new Map();
   for (const m of font.matchAll(/\[([^\]]+)\]/g)) {

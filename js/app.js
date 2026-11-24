@@ -4,7 +4,7 @@
 
 import {
   llegeixChordPro, transposaEtiqueta, toDeLaCanco, usaBemolls, nomDelTo, lletraNeta,
-  acordsASobreAChordPro, tensAcordsASobre, posaAcord, acordsDeLaCanco, canviaNegreta, LLATI,
+  acordsASobreAChordPro, tensAcordsASobre, posaAcord, acordsDeLaCanco, posicioFont, canviaNegretaSillaba, canviaTornada, posaNota, treuNota, LLATI,
 } from './acords.js';
 import { esLocal, potEditar, desaFitxer, esborraFitxer, usuari, iniciaSessio, completaRetorn, tancaSessio } from './desament.js';
 import { t, llengua, canviaLlengua, altraLlengua, traduixEstatics } from './llengua.js';
@@ -234,7 +234,7 @@ function htmlCanco(canco, salt, mode = 'vista', ambCants = false) {
     }
     if (l.tipus === 'comentari') {
       tanca();
-      html += `<p class="comentari">${esc(l.text)}</p>`;
+      html += `<p class="comentari"${mode === 'edicio' ? ` data-num="${l.num}"` : ''}>${esc(l.text)}</p>`;
       continue;
     }
     if (l.tipus !== 'lletra') continue;
@@ -876,7 +876,7 @@ async function editorCanco(slug) {
           <p class="ajuda">${t('Separats per comes. Serveixen per filtrar la llista.')}</p></div>
         <div class="pestanyes pestanyes-editor" role="tablist">
           <button class="pestanya" role="tab" data-v="text" aria-selected="true">${t('Lletra')}</button>
-          <button class="pestanya" role="tab" data-v="vista" aria-selected="false">${t('Acords')}</button>
+          <button class="pestanya" role="tab" data-v="vista" aria-selected="false">${t('Marcar')}</button>
         </div>
     </div>
     <div class="editor" data-vista="text">
@@ -884,17 +884,12 @@ async function editorCanco(slug) {
         <div class="camp">
           <label for="ed-text" class="rotol-lletra">${t('Lletra')}</label>
           <p class="ajuda">${t("Escriu o enganxa la lletra. Si l'enganxes amb els acords a la línia de sobre, es col·loquen sols damunt de cada síl·laba. Una línia en blanc separa les estrofes.")}</p>
-          <div class="eines-text">
-            <button class="boto" data-eina="tornada" title="${t('Marca les línies triades com a tornada')}">${t('Tornada')}</button>
-            <button class="boto" data-eina="nota" title="${t('Afegeix una nota, com «Dues vegades»')}">${t('Nota')}</button>
-            <button class="boto boto-negreta" data-eina="negreta" title="${t('Posa o treu la negreta de les síl·labes triades (la síl·laba forta)')}" aria-label="${t('Negreta')}">${t('N')}</button>
-          </div>
           <textarea id="ed-text" spellcheck="false">${esc(cos)}</textarea>
         </div>
       </div>
       <div class="panell-vista">
-        <div class="barra-acords" id="ed-barra" role="toolbar" aria-label="${t('Acords')}"></div>
-        <p class="ajuda" id="ed-ajuda-acords">${t("Tria un acord de la barra i toca les síl·labes on va. Amb la goma, toca els acords que sobren. Per moure'n un, arrossega'l (al mòbil, mantén-lo premut un moment).")}</p>
+        <div class="barra-acords" id="ed-barra" role="toolbar" aria-label="${t('Marcar')}"></div>
+        <p class="ajuda" id="ed-ajuda-acords">${t("Tria una eina de la barra i toca la lletra: un acord va a la síl·laba que toquis; «N» hi posa o hi treu la negreta; «Tornada» converteix l'estrofa en tornada o la desfà, i «Nota» n'hi posa una a sobre. La goma treu els acords i les notes. Per moure un acord, arrossega'l (al mòbil, mantén-lo premut un moment).")}</p>
         <div class="vista-editor canco" id="ed-vista"></div>
       </div>
     </div>
@@ -936,38 +931,7 @@ async function editorCanco(slug) {
     const conv = acordsASobreAChordPro(t);
     $text.setRangeText(conv, $text.selectionStart, $text.selectionEnd, 'end');
     pinta(); marcaCanvi();
-    avis(t('Acords col·locats damunt de la lletra. Revisa-ho a «Acords».'), 4000);
-  });
-
-  $app.querySelector('.eines-text').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-eina]');
-    if (!b) return;
-    const v = $text.value;
-    let ini = $text.selectionStart;
-    let fi = $text.selectionEnd;
-    if (b.dataset.eina === 'negreta') {
-      if (ini === fi) {
-        avis(t('Selecciona primer les síl·labes que vols en negreta.'), 3500);
-        return;
-      }
-      const nou = canviaNegreta(v, ini, fi);
-      // La selecció es manté sobre el mateix tros, amb les marques noves.
-      $text.value = nou;
-      $text.setSelectionRange(ini, fi + nou.length - v.length);
-    } else if (b.dataset.eina === 'tornada') {
-      ini = v.lastIndexOf('\n', ini - 1) + 1;
-      const f = v.indexOf('\n', Math.max(fi - 1, ini));
-      fi = f === -1 ? v.length : f;
-      const tros = v.slice(ini, fi);
-      $text.setRangeText(`{start_of_chorus}\n${tros}\n{end_of_chorus}`, ini, fi, 'end');
-    } else {
-      const inici = v.lastIndexOf('\n', ini - 1) + 1;
-      const nota = t('Dues vegades');
-      $text.setRangeText(`{comment: ${nota}}\n`, inici, inici, 'select');
-      $text.setSelectionRange(inici + 10, inici + 10 + nota.length);
-    }
-    $text.focus();
-    pinta(); marcaCanvi();
+    avis(t('Acords col·locats damunt de la lletra. Revisa-ho a «Marcar».'), 4000);
   });
 
   $app.querySelector('.pestanyes-editor').addEventListener('click', (e) => {
@@ -979,7 +943,8 @@ async function editorCanco(slug) {
   });
 
   /* Pinzell i goma: es tria a la barra què fa tocar la lletra. */
-  let eina = null; // { acord: 'SOL' } o { goma: true }
+  let eina = null; // { acord: 'SOL' }, { goma: true }, { negreta: true }, { tornada: true } o { nota: true }
+  let textNota = t('Dues vegades');
   const extres = [];
   const historial = [];
   const $barra = document.getElementById('ed-barra');
@@ -988,12 +953,21 @@ async function editorCanco(slug) {
     $barra.innerHTML = `
       <div class="xips">${acords.map((a) => `<button class="boto xip" data-pinzell="${esc(a)}" aria-pressed="${eina?.acord === a}" title="${t('Posa {0} on toquis', esc(a))}">${esc(a)}</button>`).join('')}
         <button class="boto" data-altre title="${t('Un acord que no és a la barra')}"><svg><use href="#i-plus"/></svg>${t('Altre')}</button></div>
+      <div class="eines-marca">
+        <button class="boto boto-negreta" data-marca="negreta" aria-pressed="${!!eina?.negreta}" aria-label="${t('Negreta')}" title="${t('Negreta: toca una síl·laba per posar-la o treure-la en negreta (la síl·laba forta)')}">${t('N')}</button>
+        <button class="boto" data-marca="tornada" aria-pressed="${!!eina?.tornada}" title="${t("Tornada: toca una estrofa per fer-la tornada, o per desfer-la")}">${t('Tornada')}</button>
+        <button class="boto" data-marca="nota" aria-pressed="${!!eina?.nota}" title="${t('Nota: toca una línia per posar-hi una nota a sobre, o una nota per canviar-ne el text')}">${t('Nota')}</button>
+      </div>
       <div class="eines-acords">
-        <button class="boto" data-goma aria-pressed="${!!eina?.goma}" title="${t("Goma: treu l'acord que toquis")}"><svg><use href="#i-eraser"/></svg></button>
-        <button class="boto" data-desfes title="${t("Desfés l'últim canvi d'acords")}" ${historial.length ? '' : 'disabled'}><svg><use href="#i-undo"/></svg></button>
-      </div>`;
+        <button class="boto" data-goma aria-pressed="${!!eina?.goma}" title="${t('Goma: treu l’acord o la nota que toquis')}"><svg><use href="#i-eraser"/></svg></button>
+        <button class="boto" data-desfes title="${t("Desfés l'últim canvi")}" ${historial.length ? '' : 'disabled'}><svg><use href="#i-undo"/></svg></button>
+      </div>
+      ${eina?.nota ? `<label class="text-nota">${t('Text de la nota')} <input id="ed-nota" value="${esc(textNota)}" autocomplete="off"></label>` : ''}`;
     $vista.classList.toggle('amb-goma', !!eina?.goma);
     $vista.classList.toggle('amb-pinzell', !!eina?.acord);
+    $vista.classList.toggle('amb-negreta', !!eina?.negreta);
+    $vista.classList.toggle('amb-tornada', !!eina?.tornada);
+    $vista.classList.toggle('amb-nota', !!eina?.nota);
   };
   const canviaLinia = (canvis) => {
     historial.push($text.value);
@@ -1001,6 +975,13 @@ async function editorCanco(slug) {
     const ls = $text.value.split('\n');
     for (const [num, f] of canvis) ls[num] = f(ls[num]);
     $text.value = ls.join('\n');
+    pinta(); pintaBarra(); marcaCanvi();
+  };
+  const canviaText = (nou) => {
+    if (nou === $text.value) return;
+    historial.push($text.value);
+    if (historial.length > 100) historial.shift();
+    $text.value = nou;
     pinta(); pintaBarra(); marcaCanvi();
   };
   pintaBarra();
@@ -1011,10 +992,13 @@ async function editorCanco(slug) {
     if (!b) return;
     if (b.dataset.pinzell) eina = eina?.acord === b.dataset.pinzell ? null : { acord: b.dataset.pinzell };
     else if ('goma' in b.dataset) eina = eina?.goma ? null : { goma: true };
+    else if (b.dataset.marca) eina = eina?.[b.dataset.marca] ? null : { [b.dataset.marca]: true };
     else if ('desfes' in b.dataset) {
       if (!historial.length) return;
       $text.value = historial.pop();
       pinta(); marcaCanvi();
+      pintaBarra();
+      return;
     } else if ('altre' in b.dataset) {
       obreSelector(b, null, [], (acord) => {
         if (!acord) return;
@@ -1025,20 +1009,35 @@ async function editorCanco(slug) {
       return;
     }
     pintaBarra();
+    if (eina?.nota) document.getElementById('ed-nota')?.focus();
   });
+  $barra.addEventListener('input', (e) => { if (e.target.id === 'ed-nota') textNota = e.target.value; });
 
   // Tocar la lletra fa el que digui l'eina triada.
   $vista.addEventListener('click', (e) => {
     if (arrossegat) { arrossegat = false; return; }
     const marca = e.target.closest('[data-i]');
     const pl = e.target.closest('[data-num]');
-    if (!marca || !pl) return;
+    if (!pl) return;
     const num = Number(pl.dataset.num);
+    const esNota = pl.classList.contains('comentari');
+    if (!eina) { avis(t('Tria primer una eina de la barra.')); return; }
+    if (eina.tornada) { if (!esNota) canviaText(canviaTornada($text.value, num)); return; }
+    if (eina.nota) {
+      const text = textNota.trim();
+      if (!text) { avis(t('Escriu primer el text de la nota.')); document.getElementById('ed-nota')?.focus(); return; }
+      canviaText(posaNota($text.value, num, text));
+      return;
+    }
+    if (eina.goma && esNota) { canviaText(treuNota($text.value, num)); return; }
+    if (!marca || esNota) return;
     const idx = Number(marca.dataset.i);
-    const teAcord = actualA($text.value.split('\n')[num], idx) !== null;
-    if (!eina) { avis(t("Tria primer un acord de la barra, o la goma per treure'n.")); return; }
+    if (eina.negreta) {
+      if (marca.classList.contains('c')) canviaLinia([[num, (l) => canviaNegretaSillaba(l, idx)]]);
+      return;
+    }
     if (eina.goma) {
-      if (teAcord) canviaLinia([[num, (l) => posaAcord(l, idx, '')]]);
+      if (acordA($text.value.split('\n')[num], idx) !== null) canviaLinia([[num, (l) => posaAcord(l, idx, '')]]);
       return;
     }
     canviaLinia([[num, (l) => posaAcord(l, idx, eina.acord)]]);
@@ -1101,7 +1100,7 @@ async function editorCanco(slug) {
       if (sota && pl && !sota.classList.contains('a')) {
         const desti = { num: Number(pl.dataset.num), idx: Number(sota.dataset.i) };
         const { num, idx } = ar;
-        const acord = actualA($text.value.split('\n')[num], idx);
+        const acord = acordA($text.value.split('\n')[num], idx);
         if (acord !== null && (desti.num !== num || desti.idx !== idx)) {
           canviaLinia([[num, (l) => posaAcord(l, idx, '')], [desti.num, (l) => posaAcord(l, desti.idx, acord)]]);
         } else pinta();
@@ -1165,17 +1164,9 @@ async function editorCanco(slug) {
   window.onbeforeunload = () => (canviat ? true : undefined);
 }
 
-function actualA(linia, idx) {
-  let comptador = 0;
-  for (let i = 0; i < linia.length; i++) {
-    if (linia[i] === '[') {
-      const t = linia.indexOf(']', i);
-      if (t > -1) { if (comptador === idx) return linia.slice(i + 1, t); i = t; continue; }
-    }
-    if (comptador === idx) return null;
-    comptador++;
-  }
-  return null;
+// L'acord damunt la lletra «idx» d'una línia, o null.
+function acordA(linia, idx) {
+  return posicioFont(linia, idx).acord?.text ?? null;
 }
 
 /* --- Editor de celebracions --- */

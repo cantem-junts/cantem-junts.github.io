@@ -14,8 +14,9 @@ Cançoner de cants per a la missa, amb la lletra i els acords. Substituirà
   celebració a pantalla completa, amb la lletra tan grossa com hi càpiga, i
   es passa pàgina tocant la meitat dreta (o amb un pedal). La pantalla no
   s'apaga.
-- **Editor** a la mateixa web: s'enganxa la lletra amb els acords a sobre i
-  es col·loquen sols, o es toca la síl·laba i es tria l'acord.
+- **Editor** a la mateixa web: a «Lletra» s'escriu o s'enganxa la lletra (amb
+  els acords a sobre, es col·loquen sols), i a «Marcar» es marca tot tocant la
+  lletra: els acords, la negreta de la síl·laba forta, la tornada i les notes.
 
 ## Com s'afegeix una cançó
 

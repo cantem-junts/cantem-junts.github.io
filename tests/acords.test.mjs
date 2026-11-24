@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   llegeixAcord, esEtiquetaDAcords, transposaEtiqueta, acordsASobreAChordPro,
   llegeixChordPro, posaAcord, lletraNeta, toDeLaCanco, nomDelTo, usaBemolls, acordsDeLaCanco, canviaNegreta,
+  sillabes, canviaNegretaSillaba, canviaTornada, posaNota, treuNota,
 } from '../js/acords.js';
 
 test('reconeix els acords tal com s’escriuen al cançoner', () => {
@@ -146,4 +147,44 @@ test('el botó de negreta la posa i la treu de la selecció', () => {
   assert.equal(canviaNegreta('{soc}\nla\nsi\n{eoc}', 0, 11), '{soc}\n<b>la</b>\n<b>si</b>\n{eoc}');
   // Només espais: res.
   assert.equal(canviaNegreta('a  b', 1, 3), 'a  b');
+});
+
+test('parteix les paraules en síl·labes', () => {
+  const parts = (w) => sillabes(w).map(([a, b]) => w.slice(a, b)).join('-');
+  const casos = {
+    Enmig: 'En-mig', goig: 'goig', arriba: 'a-rri-ba', proclamant: 'pro-cla-mant', justícia: 'jus-tí-cia',
+    Senyor: 'Se-nyor', ACLAMEM: 'A-CLA-MEM', quiero: 'quie-ro', pingüino: 'pin-güi-no', veïna: 've-ï-na',
+    passa: 'pas-sa', caixa: 'cai-xa', país: 'pa-ís', poeta: 'po-e-ta', noia: 'no-ia', creient: 'cre-ient', món: 'món',
+  };
+  for (const [w, esperat] of Object.entries(casos)) assert.equal(parts(w), esperat, w);
+});
+
+test('un toc posa o treu la negreta d’una síl·laba', () => {
+  const l = 'Tot procla[DO]mant els [RE7]pobres';
+  // «m» de «mant» (la lletra 10, comptant només el text).
+  assert.equal(canviaNegretaSillaba(l, 10), 'Tot procla[DO]<b>mant</b> els [RE7]pobres');
+  assert.equal(canviaNegretaSillaba('Tot procla[DO]<b>mant</b> els [RE7]pobres', 12), l);
+  assert.equal(canviaNegretaSillaba(l, 19), 'Tot procla[DO]mant els [RE7]<b>po</b>bres');
+  assert.equal(canviaNegretaSillaba('un Déu d’a[la RE7]mor', 10), 'un Déu d’a[la RE7]<b>mor</b>');
+  // Un espai o un signe: res.
+  assert.equal(canviaNegretaSillaba(l, 3), l);
+});
+
+test('fa i desfà una tornada', () => {
+  const t = 'cc\n\nA[DO]a\nbb\n\ndd';
+  const amb = 'cc\n\n{start_of_chorus}\nA[DO]a\nbb\n{end_of_chorus}\n\ndd';
+  assert.equal(canviaTornada(t, 3), amb);
+  assert.equal(canviaTornada(amb, 4), t);
+  // Desfer una tornada enganxada a una altra estrofa no les ajunta.
+  assert.equal(canviaTornada('cc\n{soc}\ndd\n{eoc}\nff', 2), 'cc\n\ndd\n\nff');
+  // Una línia que no és de lletra: res.
+  assert.equal(canviaTornada(t, 1), t);
+});
+
+test('posa, canvia i treu notes', () => {
+  const t = 'aa\nbb';
+  assert.equal(posaNota(t, 1, 'Dues vegades'), 'aa\n{comment: Dues vegades}\nbb');
+  assert.equal(posaNota('aa\n{comment: X}\nbb', 1, 'Y'), 'aa\n{comment: Y}\nbb');
+  assert.equal(treuNota('aa\n{comment: X}\nbb', 1), t);
+  assert.equal(treuNota(t, 1), t);
 });

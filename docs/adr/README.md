@@ -10,7 +10,7 @@ alternatives descartades i les conseqüències. Plantilla: [0000](0000-plantilla
 | 3 | [L'editor desa directament a GitHub](0003-editor-que-desa-a-github.md) |
 | 4 | [Els acords es mostren tal com s'escriuen](0004-notacio-dels-acords.md) |
 | 5 | [Interfície només en català](0005-interficie-nomes-en-catala.md) |
-| 6 | [Editor d'acords amb pinzell i goma](0006-editor-d-acords-amb-pinzell-i-goma.md) |
+| 6 | [Editor amb pinzell i goma: tot es marca tocant la lletra](0006-editor-d-acords-amb-pinzell-i-goma.md) |
 | 7 | [Migració de les presentacions de Google llegint la posició dels traços](0007-migracio-de-les-presentacions-de-google.md) |
 | 8 | [Mode faristol per tocar a la missa](0008-mode-faristol.md) |
 | 9 | [Entrada amb el compte de GitHub per editar](0009-entrada-amb-github.md) |

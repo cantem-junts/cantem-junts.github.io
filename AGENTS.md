@@ -35,7 +35,12 @@ tradueixen.
   mostren tal com són al fitxer. Vegeu l'[ADR 4](docs/adr/0004-notacio-dels-acords.md).
 - **La negreta dins la lletra** (la síl·laba forta del ritme) s'escriu amb la
   marca de ChordPro `<b>…</b>`, que pot travessar acords. No és text: el
-  lector de línies, `posicioFont` i la cerca la salten. A l'editor, el botó «N».
+  lector de línies, `posicioFont` i la cerca la salten. A l'editor, l'eina «N»
+  de «Marcar», que endevina la síl·laba amb `sillabes` (regles comunes del
+  català i el castellà).
+- **L'editor té dues meitats**: «Lletra», només per escriure i enganxar, i
+  «Marcar», on es fa tota la resta tocant la lletra (acords, negreta, tornada,
+  notes, goma i desfés). Vegeu l'[ADR 6](docs/adr/0006-editor-d-acords-amb-pinzell-i-goma.md).
 - **Cada text de la interfície passa per `t()`**, escrit en català, i té la
   seva traducció al diccionari `ES` de `js/llengua.js` (amb `{0}` per a les
   dades); els textos fixos d'`index.html` porten `data-t`, `data-t-title` o
