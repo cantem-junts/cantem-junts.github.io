@@ -21,8 +21,16 @@ celebració a pantalla completa:
   i el botó del mig (el percentatge) torna a la mida automàtica.
   A la celebració, cada cant té la seva mida.
 - **Pàgines, no desplaçament**: tocar la meitat dreta avança i l'esquerra
-  torna; també lliscar i el teclat (fletxes, Re Pàg/Av Pàg, espai), que és el
-  que envien els pedals de passar pàgina per Bluetooth. Un indicador «1/3».
+  torna; també el teclat (fletxes, Re Pàg/Av Pàg, espai), que és el que envien
+  els pedals de passar pàgina per Bluetooth. Un indicador «1/3».
+- **Lliscar com a PageKeeper** (des del 28-11-2026): en horitzontal la pàgina
+  segueix el dit i, en deixar-lo anar, passa si s'ha arrossegat més del 22 % de
+  l'amplada o torna al seu lloc; a la primera i l'última es resisteix. En
+  vertical no es mou fins que es deixa anar: amunt avança i avall torna, a
+  partir del 12 % de l'alçada (60 px com a mínim). Tocant o amb el pedal la
+  pàgina fa el mateix lliscament (220 ms; sense animació si el sistema demana
+  menys moviment). El pessic es deixa al navegador (`touch-action:
+  pinch-zoom`) i anul·la el gest. Les comptes són a `js/gestos.js`.
 - **Dues columnes només en horitzontal i si la lletra hi continua sent
   grossa** (22 px o més); si no, una columna i més pàgines.
 - Una estrofa pot continuar a la pàgina següent, però una línia no es parteix.
@@ -58,8 +66,14 @@ passar pàgina i tancant amb Escape.
   la finestra, amb la barra del navegador.
 - Wake Lock necessita HTTPS i un navegador recent; si no hi és, la pantalla
   s'apaga segons la configuració del dispositiu.
-- Arrossegar i tocar amb el dit real no s'ha pogut provar fora del simulador.
+- Arrossegar i tocar amb el dit real no s'ha pogut provar fora del simulador:
+  el lliscament s'ha provat amb el ratolí, que passa pels mateixos
+  esdeveniments de punter.
 
 ## Validació
 
-`npm test` i les captures de les tres mides als tres motors.
+`npm test` (també `tests/gestos.test.mjs`) i les captures de les tres mides
+als tres motors. El lliscament, amb un guió de probar-web que arrossega curt
+(torna), llarg a l'esquerra i a la dreta, amunt i avall, contra el topall, i
+toca i prem el pedal, comprovant l'indicador de pàgina: passa a Chromium,
+Firefox i WebKit, a mòbil, tauleta i escriptori.

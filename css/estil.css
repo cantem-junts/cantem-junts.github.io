@@ -263,8 +263,10 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .boto-faristol { font-weight: 600; }
 .boto-faristol span { display: inline; }
 body.amb-faristol { overflow: hidden; }
+/* El dit és tot per passar pàgina (gestos.js): ni desplaçar ni estirar per
+   recarregar; el pessic sí que es deixa al navegador. */
 .faristol {
-  position: fixed; inset: 0; z-index: 100;
+  position: fixed; inset: 0; z-index: 100; overscroll-behavior: none;
   display: flex; flex-direction: column;
   background: var(--fons); color: var(--text);
 }
@@ -276,7 +278,7 @@ body.amb-faristol { overflow: hidden; }
 .faristol-pagina { color: var(--suau); font-variant-numeric: tabular-nums; }
 .faristol-marc {
   flex: 1; min-height: 0; padding: 14px 18px; overflow: hidden;
-  touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: pointer;
+  touch-action: pinch-zoom; user-select: none; -webkit-user-select: none; cursor: pointer;
 }
 .faristol-text { overflow: hidden; column-fill: auto; line-height: 1.45; }
 .faristol-text .a { font-size: .92em; }

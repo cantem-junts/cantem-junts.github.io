@@ -12,6 +12,8 @@ tradueixen.
 - `js/acords.js`: lectura dels acords, canvi de to, ChordPro i conversió del
   text amb els acords a sobre. No depèn del navegador; el fan servir les proves
   i `scripts/index.mjs`.
+- `js/gestos.js`: comptes del gest de passar pàgina al faristol (com a
+  PageKeeper); les fa servir `npm test`.
 - `js/llengua.js`: llengua de la interfície, `t()` i el diccionari català →
   castellà.
 - `js/desament.js`: desa a GitHub (API de continguts, amb la clau de qui

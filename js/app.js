@@ -8,6 +8,7 @@ import {
 } from './acords.js';
 import { esLocal, potEditar, desaFitxer, esborraFitxer, usuari, iniciaSessio, completaRetorn, tancaSessio } from './desament.js';
 import { t, llengua, canviaLlengua, altraLlengua, traduixEstatics } from './llengua.js';
+import * as gestos from './gestos.js';
 
 const $app = document.getElementById('app');
 const col = new Intl.Collator('ca');
@@ -376,8 +377,20 @@ function obreFaristol() {
   let pas = 1;
   let escala = Number(pref.get('mida-faristol', '1'));
 
+  // El dit pot deixar la pàgina a mig camí (scrollLeft) o, al topall, desplaçada
+  // amb transform; «llisca» l'acaba de portar al seu lloc.
+  let desplacament = 0;
+  let animacio = 0;
+  const quiet = matchMedia('(prefers-reduced-motion: reduce)');
+  const desplaca = (px) => {
+    desplacament = px;
+    text.style.transform = px ? `translateX(${px}px)` : '';
+  };
+
   const situa = () => {
+    cancelAnimationFrame(animacio);
     pagina = Math.max(0, Math.min(pagines - 1, pagina));
+    desplaca(0);
     text.scrollLeft = pagina * pas;
     rotolPagina.textContent = pagines > 1 ? `${pagina + 1}/${pagines}` : '';
     el.querySelector('[data-f="original"]').textContent = percent(escala);
@@ -396,8 +409,32 @@ function obreFaristol() {
     rotolTitol.textContent = nom;
   };
 
+  // Passar pàgina lliscant, des d'on sigui que hagi quedat: amb el dit, tocant
+  // o amb el pedal la pàgina fa el mateix recorregut, com a PageKeeper.
+  const llisca = () => {
+    cancelAnimationFrame(animacio);
+    pagina = Math.max(0, Math.min(pagines - 1, pagina));
+    const des = text.scrollLeft;
+    const fins = pagina * pas;
+    const desX = desplacament;
+    if (quiet.matches || (Math.abs(des - fins) < 1 && !desX)) return situa();
+    rotolPagina.textContent = pagines > 1 ? `${pagina + 1}/${pagines}` : '';
+    const inici = performance.now();
+    const durada = 220;
+    const fotograma = (ara) => {
+      const f = Math.min(1, (ara - inici) / durada);
+      const e = 1 - (1 - f) ** 3;
+      text.scrollLeft = des + (fins - des) * e;
+      desplaca(desX * (1 - e));
+      if (f < 1) animacio = requestAnimationFrame(fotograma); else situa();
+    };
+    animacio = requestAnimationFrame(fotograma);
+  };
+
   const maqueta = () => {
-    const primer = text.scrollLeft && pas ? text.scrollLeft / pas : pagina;
+    cancelAnimationFrame(animacio);
+    desplaca(0);
+    const primer = pagina;
     text.style.columnWidth = '';
     text.style.columnCount = '';
     text.scrollLeft = 0;
@@ -426,7 +463,7 @@ function obreFaristol() {
     situa();
   };
 
-  const avanca = (d) => { pagina += d; situa(); };
+  const avanca = (d) => { pagina += d; llisca(); };
   const tanca = () => {
     window.removeEventListener('resize', alRedimensionar);
     document.removeEventListener('keydown', teclat);
@@ -446,20 +483,54 @@ function obreFaristol() {
   let espera = null;
   const alRedimensionar = () => { clearTimeout(espera); espera = setTimeout(maqueta, 120); };
 
-  // Tocar a la dreta avança, a l'esquerra torna; lliscar també.
-  let inici = null;
-  marc.addEventListener('pointerdown', (e) => { inici = { x: e.clientX, y: e.clientY }; });
-  marc.addEventListener('pointerup', (e) => {
-    if (!inici) return;
-    const dx = e.clientX - inici.x;
-    const dy = e.clientY - inici.y;
-    inici = null;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) return avanca(dx < 0 ? 1 : -1);
-    if (Math.abs(dx) < 12 && Math.abs(dy) < 12) {
-      const r = marc.getBoundingClientRect();
-      avanca(e.clientX > r.left + r.width / 2 ? 1 : -1);
-    }
+  // Amb el dit, com a PageKeeper. En horitzontal la pàgina segueix el dit i, en
+  // deixar-lo anar, passa si s'ha arrossegat prou o torna al seu lloc; en
+  // vertical no es mou fins que es deixa anar: amunt avança i avall torna. Un
+  // toc a la meitat dreta avança i a l'esquerra torna. Les comptes, a gestos.js.
+  let gest = null;
+  marc.addEventListener('pointerdown', (e) => {
+    // Un segon dit és un pessic, no un gest de pàgina: la pàgina torna al lloc.
+    if (!e.isPrimary) { if (gest) { gest = null; llisca(); } return; }
+    if (e.button > 0) return;
+    situa(); // si encara lliscava, s'acaba de cop i el dit agafa la pàgina quieta
+    gest = { id: e.pointerId, x: e.clientX, y: e.clientY, eix: null, dx: 0, dy: 0 };
   });
+  marc.addEventListener('pointermove', (e) => {
+    if (!gest || e.pointerId !== gest.id) return;
+    const dx = e.clientX - gest.x;
+    const dy = e.clientY - gest.y;
+    if (!gest.eix) {
+      const eix = gestos.decideixEix(dx, dy);
+      if (eix === 'espera') return;
+      gest.eix = eix;
+      try { marc.setPointerCapture(e.pointerId); } catch (err) { /* el dit ja no hi és */ }
+    }
+    gest.dx = dx;
+    gest.dy = dy;
+    if (gest.eix !== 'horitzontal') return;
+    const desti = pagina + (dx < 0 ? 1 : -1);
+    const hiHaDesti = desti >= 0 && desti < pagines;
+    const r = gestos.recorregut(dx, { hiHaDesti, pas });
+    if (hiHaDesti) { desplaca(0); text.scrollLeft = pagina * pas - r; }
+    else desplaca(r);
+  });
+  const deixa = (e) => {
+    if (!gest || e.pointerId !== gest.id) return;
+    const { eix, dx, dy } = gest;
+    gest = null;
+    if (e.type === 'pointercancel') return llisca();
+    if (!eix) {
+      const r = marc.getBoundingClientRect();
+      return avanca(e.clientX > r.left + r.width / 2 ? 1 : -1);
+    }
+    const passa = eix === 'vertical'
+      ? gestos.passaVertical(dy, marc.clientHeight)
+      : gestos.passaHoritzontal(dx, pas);
+    if (passa) pagina += gestos.sentit(eix, dx, dy);
+    llisca();
+  };
+  marc.addEventListener('pointerup', deixa);
+  marc.addEventListener('pointercancel', deixa);
   marc.addEventListener('click', (e) => e.preventDefault());
   el.querySelector('.faristol-capa').addEventListener('click', (e) => {
     const b = e.target.closest('[data-f]');
